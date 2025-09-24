@@ -1,0 +1,23 @@
+org: abelzn
+service: portfolio-site
+
+provider:
+  name: aws
+  region: us-east-1
+  runtime: nodejs22.x
+  memorySize: 128
+
+custom:
+  domainName: abel.dev.br
+  includeWWW: true
+  bucketName: ${self:service}-${sls:stage}-${aws:accountId}
+
+params:
+  default:
+    HostedZoneId: Z00310213QJDJFLRVJAAM
+
+resources:
+  - ${file(./sls/acm.yml)}
+  - ${file(./sls/s3.yml)}
+  - ${file(./sls/cloudfront.yml)}
+  - ${file(./sls/route53.yml)}

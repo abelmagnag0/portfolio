@@ -1,0 +1,20 @@
+Resources:
+  ApexRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: ${param:HostedZoneId}
+      Name: ${self:custom.domainName}
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt PortfolioDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2 # CloudFront Hosted Zone ID (global)
+
+  WwwRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: ${param:HostedZoneId}
+      Name: !Sub 'www.${self:custom.domainName}'
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt PortfolioDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2

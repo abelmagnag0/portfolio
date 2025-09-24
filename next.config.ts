@@ -1,7 +1,8 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Export estático para gerar a pasta 'out/' conforme PORTFOLIO_SETUP_DEPLOY.md
+  output: 'export',
 };
 
 export default nextConfig;

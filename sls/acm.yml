@@ -1,0 +1,19 @@
+Resources:
+  PortfolioCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: ${self:custom.domainName}
+      SubjectAlternativeNames:
+        - !Sub 'www.${self:custom.domainName}'
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: ${self:custom.domainName}
+          HostedZoneId: ${param:HostedZoneId}
+        - DomainName: !Sub 'www.${self:custom.domainName}'
+          HostedZoneId: ${param:HostedZoneId}
+
+Outputs:
+  PortfolioCertificateArn:
+    Value: !Ref PortfolioCertificate
+    Export:
+      Name: PortfolioCertificateArn

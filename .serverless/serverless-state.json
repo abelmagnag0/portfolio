@@ -1,0 +1,539 @@
+{
+  "service": {
+    "service": "portfolio-site",
+    "serviceObject": {
+      "name": "portfolio-site"
+    },
+    "provider": {
+      "name": "aws",
+      "region": "us-east-1",
+      "runtime": "nodejs22.x",
+      "memorySize": 128,
+      "stage": "dev",
+      "versionFunctions": true,
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "PortfolioCertificate": {
+            "Type": "AWS::CertificateManager::Certificate",
+            "Properties": {
+              "DomainName": "abel.dev.br",
+              "SubjectAlternativeNames": [
+                {
+                  "Fn::Sub": "www.abel.dev.br"
+                }
+              ],
+              "ValidationMethod": "DNS",
+              "DomainValidationOptions": [
+                {
+                  "DomainName": "abel.dev.br",
+                  "HostedZoneId": "Z00310213QJDJFLRVJAAM"
+                },
+                {
+                  "DomainName": {
+                    "Fn::Sub": "www.abel.dev.br"
+                  },
+                  "HostedZoneId": "Z00310213QJDJFLRVJAAM"
+                }
+              ]
+            }
+          },
+          "PortfolioBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketName": "portfolio-site-dev-825765398074",
+              "PublicAccessBlockConfiguration": {
+                "BlockPublicAcls": true,
+                "BlockPublicPolicy": true,
+                "IgnorePublicAcls": true,
+                "RestrictPublicBuckets": true
+              },
+              "OwnershipControls": {
+                "Rules": [
+                  {
+                    "ObjectOwnership": "BucketOwnerEnforced"
+                  }
+                ]
+              }
+            },
+            "DeletionPolicy": "Retain",
+            "UpdateReplacePolicy": "Retain"
+          },
+          "PortfolioBucketPolicy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+              "Bucket": {
+                "Ref": "PortfolioBucket"
+              },
+              "PolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Sid": "AllowCloudFrontServicePrincipalReadOnly",
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": "cloudfront.amazonaws.com"
+                    },
+                    "Action": [
+                      "s3:GetObject",
+                      "s3:ListBucket"
+                    ],
+                    "Resource": [
+                      {
+                        "Fn::GetAtt": [
+                          "PortfolioBucket",
+                          "Arn"
+                        ]
+                      },
+                      {
+                        "Fn::Sub": "${PortfolioBucket.Arn}/*"
+                      }
+                    ],
+                    "Condition": {
+                      "StringEquals": {
+                        "AWS:SourceArn": {
+                          "Fn::Sub": "arn:aws:cloudfront::${AWS::AccountId}:distribution/${PortfolioDistribution}"
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "DependsOn": [
+              "PortfolioBucket",
+              "PortfolioDistribution"
+            ]
+          },
+          "PortfolioOAC": {
+            "Type": "AWS::CloudFront::OriginAccessControl",
+            "Properties": {
+              "OriginAccessControlConfig": {
+                "Name": "portfolio-oac",
+                "OriginAccessControlOriginType": "s3",
+                "SigningBehavior": "always",
+                "SigningProtocol": "sigv4"
+              }
+            }
+          },
+          "PortfolioDistribution": {
+            "Type": "AWS::CloudFront::Distribution",
+            "Properties": {
+              "DistributionConfig": {
+                "Enabled": true,
+                "Comment": "Portfolio static site",
+                "DefaultRootObject": "index.html",
+                "Origins": [
+                  {
+                    "Id": "s3-origin",
+                    "DomainName": {
+                      "Fn::GetAtt": [
+                        "PortfolioBucket",
+                        "RegionalDomainName"
+                      ]
+                    },
+                    "S3OriginConfig": {},
+                    "OriginAccessControlId": {
+                      "Fn::GetAtt": [
+                        "PortfolioOAC",
+                        "Id"
+                      ]
+                    }
+                  }
+                ],
+                "DefaultCacheBehavior": {
+                  "TargetOriginId": "s3-origin",
+                  "ViewerProtocolPolicy": "redirect-to-https",
+                  "AllowedMethods": [
+                    "GET",
+                    "HEAD"
+                  ],
+                  "CachedMethods": [
+                    "GET",
+                    "HEAD"
+                  ],
+                  "Compress": true,
+                  "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6"
+                },
+                "Aliases": [
+                  "abel.dev.br",
+                  {
+                    "Fn::Sub": "www.abel.dev.br"
+                  }
+                ],
+                "ViewerCertificate": {
+                  "AcmCertificateArn": {
+                    "Ref": "PortfolioCertificate"
+                  },
+                  "SslSupportMethod": "sni-only",
+                  "MinimumProtocolVersion": "TLSv1.2_2021"
+                }
+              }
+            }
+          },
+          "ApexRecord": {
+            "Type": "AWS::Route53::RecordSet",
+            "Properties": {
+              "HostedZoneId": "Z00310213QJDJFLRVJAAM",
+              "Name": "abel.dev.br",
+              "Type": "A",
+              "AliasTarget": {
+                "DNSName": {
+                  "Fn::GetAtt": [
+                    "PortfolioDistribution",
+                    "DomainName"
+                  ]
+                },
+                "HostedZoneId": "Z2FDTNDATAQYW2"
+              }
+            }
+          },
+          "WwwRecord": {
+            "Type": "AWS::Route53::RecordSet",
+            "Properties": {
+              "HostedZoneId": "Z00310213QJDJFLRVJAAM",
+              "Name": {
+                "Fn::Sub": "www.abel.dev.br"
+              },
+              "Type": "A",
+              "AliasTarget": {
+                "DNSName": {
+                  "Fn::GetAtt": [
+                    "PortfolioDistribution",
+                    "DomainName"
+                  ]
+                },
+                "HostedZoneId": "Z2FDTNDATAQYW2"
+              }
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": "serverless-framework-deployments-us-east-1-157962dc-e4ca",
+            "Export": {
+              "Name": "sls-portfolio-site-dev-ServerlessDeploymentBucketName"
+            }
+          },
+          "PortfolioCertificateArn": {
+            "Value": {
+              "Ref": "PortfolioCertificate"
+            },
+            "Export": {
+              "Name": "PortfolioCertificateArn"
+            }
+          },
+          "PortfolioBucketName": {
+            "Value": {
+              "Ref": "PortfolioBucket"
+            },
+            "Export": {
+              "Name": "PortfolioBucketName"
+            }
+          },
+          "PortfolioDistributionId": {
+            "Value": {
+              "Ref": "PortfolioDistribution"
+            },
+            "Export": {
+              "Name": "PortfolioDistributionId"
+            }
+          },
+          "PortfolioDistributionDomainName": {
+            "Value": {
+              "Fn::GetAtt": [
+                "PortfolioDistribution",
+                "DomainName"
+              ]
+            },
+            "Export": {
+              "Name": "PortfolioDistributionDomainName"
+            }
+          },
+          "PortfolioDistributionHostedZoneId": {
+            "Value": "Z2FDTNDATAQYW2",
+            "Export": {
+              "Name": "PortfolioDistributionHostedZoneId"
+            }
+          }
+        }
+      }
+    },
+    "custom": {
+      "domainName": "abel.dev.br",
+      "includeWWW": true,
+      "bucketName": "portfolio-site-dev-825765398074"
+    },
+    "pluginsData": {},
+    "functions": {},
+    "resources": {
+      "Resources": {
+        "PortfolioCertificate": {
+          "Type": "AWS::CertificateManager::Certificate",
+          "Properties": {
+            "DomainName": "abel.dev.br",
+            "SubjectAlternativeNames": [
+              {
+                "Fn::Sub": "www.abel.dev.br"
+              }
+            ],
+            "ValidationMethod": "DNS",
+            "DomainValidationOptions": [
+              {
+                "DomainName": "abel.dev.br",
+                "HostedZoneId": "Z00310213QJDJFLRVJAAM"
+              },
+              {
+                "DomainName": {
+                  "Fn::Sub": "www.abel.dev.br"
+                },
+                "HostedZoneId": "Z00310213QJDJFLRVJAAM"
+              }
+            ]
+          }
+        },
+        "PortfolioBucket": {
+          "Type": "AWS::S3::Bucket",
+          "Properties": {
+            "BucketName": "portfolio-site-dev-825765398074",
+            "PublicAccessBlockConfiguration": {
+              "BlockPublicAcls": true,
+              "BlockPublicPolicy": true,
+              "IgnorePublicAcls": true,
+              "RestrictPublicBuckets": true
+            },
+            "OwnershipControls": {
+              "Rules": [
+                {
+                  "ObjectOwnership": "BucketOwnerEnforced"
+                }
+              ]
+            }
+          },
+          "DeletionPolicy": "Retain",
+          "UpdateReplacePolicy": "Retain"
+        },
+        "PortfolioBucketPolicy": {
+          "Type": "AWS::S3::BucketPolicy",
+          "Properties": {
+            "Bucket": {
+              "Ref": "PortfolioBucket"
+            },
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "AllowCloudFrontServicePrincipalReadOnly",
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Service": "cloudfront.amazonaws.com"
+                  },
+                  "Action": [
+                    "s3:GetObject",
+                    "s3:ListBucket"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "PortfolioBucket",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::Sub": "${PortfolioBucket.Arn}/*"
+                    }
+                  ],
+                  "Condition": {
+                    "StringEquals": {
+                      "AWS:SourceArn": {
+                        "Fn::Sub": "arn:aws:cloudfront::${AWS::AccountId}:distribution/${PortfolioDistribution}"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "DependsOn": [
+            "PortfolioBucket",
+            "PortfolioDistribution"
+          ]
+        },
+        "PortfolioOAC": {
+          "Type": "AWS::CloudFront::OriginAccessControl",
+          "Properties": {
+            "OriginAccessControlConfig": {
+              "Name": "portfolio-oac",
+              "OriginAccessControlOriginType": "s3",
+              "SigningBehavior": "always",
+              "SigningProtocol": "sigv4"
+            }
+          }
+        },
+        "PortfolioDistribution": {
+          "Type": "AWS::CloudFront::Distribution",
+          "Properties": {
+            "DistributionConfig": {
+              "Enabled": true,
+              "Comment": "Portfolio static site",
+              "DefaultRootObject": "index.html",
+              "Origins": [
+                {
+                  "Id": "s3-origin",
+                  "DomainName": {
+                    "Fn::GetAtt": [
+                      "PortfolioBucket",
+                      "RegionalDomainName"
+                    ]
+                  },
+                  "S3OriginConfig": {},
+                  "OriginAccessControlId": {
+                    "Fn::GetAtt": [
+                      "PortfolioOAC",
+                      "Id"
+                    ]
+                  }
+                }
+              ],
+              "DefaultCacheBehavior": {
+                "TargetOriginId": "s3-origin",
+                "ViewerProtocolPolicy": "redirect-to-https",
+                "AllowedMethods": [
+                  "GET",
+                  "HEAD"
+                ],
+                "CachedMethods": [
+                  "GET",
+                  "HEAD"
+                ],
+                "Compress": true,
+                "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6"
+              },
+              "Aliases": [
+                "abel.dev.br",
+                {
+                  "Fn::Sub": "www.abel.dev.br"
+                }
+              ],
+              "ViewerCertificate": {
+                "AcmCertificateArn": {
+                  "Ref": "PortfolioCertificate"
+                },
+                "SslSupportMethod": "sni-only",
+                "MinimumProtocolVersion": "TLSv1.2_2021"
+              }
+            }
+          }
+        },
+        "ApexRecord": {
+          "Type": "AWS::Route53::RecordSet",
+          "Properties": {
+            "HostedZoneId": "Z00310213QJDJFLRVJAAM",
+            "Name": "abel.dev.br",
+            "Type": "A",
+            "AliasTarget": {
+              "DNSName": {
+                "Fn::GetAtt": [
+                  "PortfolioDistribution",
+                  "DomainName"
+                ]
+              },
+              "HostedZoneId": "Z2FDTNDATAQYW2"
+            }
+          }
+        },
+        "WwwRecord": {
+          "Type": "AWS::Route53::RecordSet",
+          "Properties": {
+            "HostedZoneId": "Z00310213QJDJFLRVJAAM",
+            "Name": {
+              "Fn::Sub": "www.abel.dev.br"
+            },
+            "Type": "A",
+            "AliasTarget": {
+              "DNSName": {
+                "Fn::GetAtt": [
+                  "PortfolioDistribution",
+                  "DomainName"
+                ]
+              },
+              "HostedZoneId": "Z2FDTNDATAQYW2"
+            }
+          }
+        }
+      },
+      "Outputs": {
+        "PortfolioCertificateArn": {
+          "Value": {
+            "Ref": "PortfolioCertificate"
+          },
+          "Export": {
+            "Name": "PortfolioCertificateArn"
+          }
+        },
+        "PortfolioBucketName": {
+          "Value": {
+            "Ref": "PortfolioBucket"
+          },
+          "Export": {
+            "Name": "PortfolioBucketName"
+          }
+        },
+        "PortfolioDistributionId": {
+          "Value": {
+            "Ref": "PortfolioDistribution"
+          },
+          "Export": {
+            "Name": "PortfolioDistributionId"
+          }
+        },
+        "PortfolioDistributionDomainName": {
+          "Value": {
+            "Fn::GetAtt": [
+              "PortfolioDistribution",
+              "DomainName"
+            ]
+          },
+          "Export": {
+            "Name": "PortfolioDistributionDomainName"
+          }
+        },
+        "PortfolioDistributionHostedZoneId": {
+          "Value": "Z2FDTNDATAQYW2",
+          "Export": {
+            "Name": "PortfolioDistributionHostedZoneId"
+          }
+        }
+      }
+    },
+    "configValidationMode": "warn",
+    "serviceFilename": "serverless",
+    "initialServerlessConfig": {
+      "org": "abelzn",
+      "service": "portfolio-site",
+      "provider": {
+        "$ref": "$[\"service\"][\"provider\"]"
+      },
+      "custom": {
+        "$ref": "$[\"service\"][\"custom\"]"
+      },
+      "params": {
+        "default": {
+          "HostedZoneId": "Z00310213QJDJFLRVJAAM"
+        }
+      },
+      "resources": {
+        "$ref": "$[\"service\"][\"resources\"]"
+      }
+    },
+    "appId": null,
+    "org": "abelzn",
+    "orgId": null,
+    "layers": {}
+  },
+  "package": {
+    "artifactDirectoryName": "serverless/portfolio-site/dev/1758726992240-2025-09-24T15:16:32.240Z",
+    "artifact": ""
+  }
+}
