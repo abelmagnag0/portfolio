@@ -72,7 +72,7 @@ export function HeroSection() {
             <div className="relative w-full aspect-square max-w-md mx-auto">
               <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/50 rounded-full blur-2xl opacity-30" />
               <ImageWithFallback
-                src="https://images.unsplash.com/photo-1737575655055-e3967cbefd03?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBkZXZlbG9wZXIlMjBwb3J0cmFpdHxlbnwxfHx8fDE3NjE2MzA2MDZ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                src="/abel.jpeg"
                 alt="Abel Magnago"
                 className="relative rounded-full w-full h-full object-cover border-4 border-primary/20"
               />
