@@ -1,9 +1,28 @@
+import { AboutSection } from '@/library/sections/about';
+import { ContactSection } from '@/library/sections/contact';
+import { Footer } from '@/library/sections/footer';
+import { HeroSection } from '@/library/sections/hero';
+import { Navbar } from '@/library/sections/navbar';
+import { ProjectsSection } from '@/library/sections/projects';
+import { SkillsSection } from '@/library/sections/skills';
+import { ThemeProvider } from '@/library/utils/theme-provider';
+
 export default function Home() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-slate-950">
-      <h1 className="text-center text-2xl sm:text-3xl md:text-4xl font-semibold text-slate-100">
-        Aguarde, portfólio em construção
-      </h1>
-    </main>
+    <ThemeProvider>
+      <div className="min-h-screen">
+        <Navbar />
+        <main>
+          <HeroSection />
+          <AboutSection />
+          <SkillsSection />
+          <ProjectsSection />
+          {/* <TestimonialsSection /> */}
+          {/* <ArticlesSection /> */}
+          <ContactSection />
+        </main>
+        <Footer />
+      </div>
+    </ThemeProvider>
   );
 }
