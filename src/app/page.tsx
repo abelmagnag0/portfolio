@@ -5,11 +5,11 @@ import { HeroSection } from '@/library/sections/hero';
 import { Navbar } from '@/library/sections/navbar';
 import { ProjectsSection } from '@/library/sections/projects';
 import { SkillsSection } from '@/library/sections/skills';
-import { ThemeProvider } from '@/library/utils/theme-provider';
+import { SettingsProvider } from '@/library/utils/settings-provider';
 
 export default function Home() {
   return (
-    <ThemeProvider>
+    <SettingsProvider>
       <div className="min-h-screen">
         <Navbar />
         <main>
@@ -23,6 +23,6 @@ export default function Home() {
         </main>
         <Footer />
       </div>
-    </ThemeProvider>
+    </SettingsProvider>
   );
 }

@@ -3,8 +3,10 @@ import { Button } from '@/library/components/button';
 import { ImageWithFallback } from '@/library/components/image-with-fallback';
 import { ArrowRight, Mail } from '@/library/icons';
 import { motion } from '@/library/utils/motion';
+import { useSettings } from '@/library/utils/settings-provider';
 
 export function HeroSection() {
+  const { t } = useSettings();
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
@@ -27,7 +29,7 @@ export function HeroSection() {
             className="space-y-6"
           >
             <div className="inline-block px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-              <span className="text-primary">Disponível para novos projetos</span>
+              <span className="text-primary">{t('hero.available')}</span>
             </div>
             
             <h1 className="text-5xl md:text-6xl lg:text-7xl">
@@ -35,11 +37,11 @@ export function HeroSection() {
             </h1>
             
             <p className="text-2xl md:text-3xl text-muted-foreground">
-              Desenvolvedor Full-Stack & Mobile
+              {t('hero.role')}
             </p>
             
             <p className="text-lg text-muted-foreground max-w-xl">
-              Crio soluções escaláveis e intuitivas unindo performance, UX e Cloud.
+              {t('hero.description')}
             </p>
             
             <div className="flex flex-wrap gap-4 pt-4">
@@ -48,7 +50,7 @@ export function HeroSection() {
                 onClick={() => scrollToSection('projetos')}
                 className="gap-2"
               >
-                Ver Portfólio
+                {t('hero.cta_portfolio')}
                 <ArrowRight className="w-4 h-4" />
               </Button>
               <Button
@@ -58,7 +60,7 @@ export function HeroSection() {
                 className="gap-2"
               >
                 <Mail className="w-4 h-4" />
-                Entrar em Contato
+                {t('hero.cta_contact')}
               </Button>
             </div>
           </motion.div>
@@ -72,7 +74,7 @@ export function HeroSection() {
             <div className="relative w-full aspect-square max-w-md mx-auto">
               <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/50 rounded-full blur-2xl opacity-30" />
               <ImageWithFallback
-                src="/abel.jpeg"
+                src="/hero.jpeg"
                 alt="Abel Magnago"
                 className="relative rounded-full w-full h-full object-cover border-4 border-primary/20"
               />

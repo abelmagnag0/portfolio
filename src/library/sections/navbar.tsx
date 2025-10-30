@@ -1,11 +1,11 @@
 "use client";
 import { Download, Moon, Sun } from '@/library/icons';
 import { motion } from '@/library/utils/motion';
+import { useSettings } from '@/library/utils/settings-provider';
 import { Button } from '../components/button';
-import { useTheme } from '../utils/theme-provider';
 
 export function Navbar() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, lang, t, toggleLanguage } = useSettings();
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -36,30 +36,38 @@ export function Navbar() {
                 onClick={() => scrollToSection('sobre')}
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
-                Sobre
+                {t('nav.about')}
               </button>
               <button
                 onClick={() => scrollToSection('projetos')}
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
-                Projetos
+                {t('nav.projects')}
               </button>
               <button
                 onClick={() => scrollToSection('artigos')}
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
-                Artigos
+                {t('nav.articles')}
               </button>
               <button
                 onClick={() => scrollToSection('contato')}
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
-                Contato
+                {t('nav.contact')}
               </button>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
+            <button
+              onClick={toggleLanguage}
+              className="px-2 py-1 rounded-lg hover:bg-accent text-sm text-muted-foreground transition-colors border border-border"
+              aria-label="Toggle language"
+              title={t('nav.switch_language_title')}
+            >
+              {lang === 'pt-BR' ? 'EN' : 'PT'}
+            </button>
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg hover:bg-accent transition-colors"
@@ -71,9 +79,18 @@ export function Navbar() {
                 <Moon className="w-5 h-5" />
               )}
             </button>
-            <Button className="gap-2">
-              <Download className="w-4 h-4" />
-              Baixar CV
+            <Button className="gap-2" asChild>
+              <a
+                href={
+                  lang === 'en'
+                    ? '/cv/Abel%20Magnago%20CV%20EN.pdf'
+                    : '/cv/Abel%20Magnago%20CV%20PT-BR.pdf'
+                }
+                download
+              >
+                <Download className="w-4 h-4" />
+                {t('nav.download_cv')}
+              </a>
             </Button>
           </div>
         </div>
