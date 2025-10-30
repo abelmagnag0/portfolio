@@ -1,7 +1,7 @@
 "use client";
 import { Avatar, AvatarFallback, AvatarImage } from '@/library/components/avatar';
-import { Quote } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Quote } from '@/library/icons';
+import { motion } from '@/library/utils/motion';
 
 const testimonials = [
   {

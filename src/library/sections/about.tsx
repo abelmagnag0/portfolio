@@ -1,6 +1,6 @@
 "use client";
-import { Award, Code2, Users } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Award, Code2, Users } from '@/library/icons';
+import { motion } from '@/library/utils/motion';
 
 const stats = [
   {

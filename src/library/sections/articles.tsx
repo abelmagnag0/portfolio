@@ -1,7 +1,7 @@
 "use client";
 import { Badge } from '@/library/components/badge';
-import { ArrowRight, Calendar } from 'lucide-react';
-import { motion } from 'motion/react';
+import { ArrowRight, Calendar } from '@/library/icons';
+import { motion } from '@/library/utils/motion';
 
 const articles = [
   {

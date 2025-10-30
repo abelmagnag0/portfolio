@@ -1,6 +1,6 @@
 "use client";
-import { Cloud, Code2, Database, Server } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Cloud, Code2, Database, Server } from '@/library/icons';
+import { motion } from '@/library/utils/motion';
 
 const skillCategories = [
   {

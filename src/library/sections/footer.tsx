@@ -1,4 +1,4 @@
-import { Github, Heart, Linkedin, Mail } from 'lucide-react';
+import { Github, Heart, Linkedin, Mail } from '@/library/icons';
 
 export function Footer() {
   return (
@@ -48,7 +48,7 @@ export function Footer() {
 
         <div className="mt-8 pt-8 border-t border-border text-center">
           <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-            © 2025 Abel Magnago — Desenvolvido por mim
+            © 2025 Abel Magnago
             <Heart className="w-4 h-4 text-primary fill-primary" />
           </p>
         </div>

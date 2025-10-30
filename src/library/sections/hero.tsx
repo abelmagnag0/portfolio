@@ -1,8 +1,8 @@
 "use client";
 import { Button } from '@/library/components/button';
 import { ImageWithFallback } from '@/library/components/image-with-fallback';
-import { ArrowRight, Mail } from 'lucide-react';
-import { motion } from 'motion/react';
+import { ArrowRight, Mail } from '@/library/icons';
+import { motion } from '@/library/utils/motion';
 
 export function HeroSection() {
   const scrollToSection = (sectionId: string) => {

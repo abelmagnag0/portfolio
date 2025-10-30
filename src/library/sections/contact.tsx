@@ -1,7 +1,7 @@
 "use client";
 import { Button } from '@/library/components/button';
-import { Github, Linkedin, Mail, Phone } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Github, Linkedin, Mail, Phone } from '@/library/icons';
+import { motion } from '@/library/utils/motion';
 
 const contactLinks = [
   {

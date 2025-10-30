@@ -2,8 +2,8 @@
 import { Badge } from '@/library/components/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/library/components/dialog';
 import { ImageWithFallback } from '@/library/components/image-with-fallback';
-import { Globe, Lock } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Globe, Lock } from '@/library/icons';
+import { motion } from '@/library/utils/motion';
 
 const projects = [
   {

@@ -1,6 +1,6 @@
 "use client";
-import { Download, Moon, Sun } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Download, Moon, Sun } from '@/library/icons';
+import { motion } from '@/library/utils/motion';
 import { Button } from '../components/button';
 import { useTheme } from '../utils/theme-provider';
 

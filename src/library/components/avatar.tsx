@@ -1,49 +1,72 @@
 "use client";
 
-import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import * as React from "react";
 import { cn } from "./utils";
 
+type AvatarCtx = {
+  loaded: boolean;
+  error: boolean;
+  setLoaded: (v: boolean) => void;
+  setError: (v: boolean) => void;
+};
 
-function Avatar({
-  className,
-  ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Root>) {
+const AvatarContext = React.createContext<AvatarCtx | null>(null);
+
+function useAvatarCtx() {
+  const ctx = React.useContext(AvatarContext);
+  if (!ctx) throw new Error("Avatar components must be used within <Avatar>");
+  return ctx;
+}
+
+function Avatar({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  const [loaded, setLoaded] = React.useState(false);
+  const [error, setError] = React.useState(false);
+
   return (
-    <AvatarPrimitive.Root
-      data-slot="avatar"
-      className={cn(
-        "relative flex size-10 shrink-0 overflow-hidden rounded-full",
-        className,
-      )}
-      {...props}
-    />
+    <AvatarContext.Provider value={{ loaded, error, setLoaded, setError }}>
+      <div
+        data-slot="avatar"
+        className={cn("relative flex size-10 shrink-0 overflow-hidden rounded-full", className)}
+        {...props}
+      >
+        {children}
+      </div>
+    </AvatarContext.Provider>
   );
 }
 
-function AvatarImage({
-  className,
-  ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Image>) {
+type AvatarImageProps = React.ImgHTMLAttributes<HTMLImageElement>;
+function AvatarImage({ className, onError, onLoad, alt = "", ...props }: AvatarImageProps) {
+  const { setLoaded, setError, error } = useAvatarCtx();
   return (
-    <AvatarPrimitive.Image
+    <img
       data-slot="avatar-image"
-      className={cn("aspect-square size-full", className)}
+      className={cn("aspect-square size-full", className, error && "hidden")}
+      onLoad={(e) => {
+        setLoaded(true);
+        onLoad?.(e);
+      }}
+      onError={(e) => {
+        setError(true);
+        onError?.(e);
+      }}
+      alt={alt}
       {...props}
     />
   );
 }
 
-function AvatarFallback({
-  className,
-  ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Fallback>) {
+type AvatarFallbackProps = React.HTMLAttributes<HTMLDivElement>;
+function AvatarFallback({ className, ...props }: AvatarFallbackProps) {
+  const { loaded, error } = useAvatarCtx();
+  const show = !loaded || error;
   return (
-    <AvatarPrimitive.Fallback
+    <div
       data-slot="avatar-fallback"
       className={cn(
         "bg-muted flex size-full items-center justify-center rounded-full",
-        className,
+        !show && "hidden",
+        className
       )}
       {...props}
     />
