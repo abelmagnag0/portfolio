@@ -2,6 +2,7 @@
 import { Badge } from '@/library/components/badge';
 import { ArrowRight, Calendar } from '@/library/icons';
 import { motion } from '@/library/utils/motion';
+import { useSettings } from '@/library/utils/settings-provider';
 
 const articles = [
   {
@@ -49,6 +50,7 @@ const articles = [
 ];
 
 export function ArticlesSection() {
+  const { t } = useSettings();
   return (
     <section id="artigos" className="py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -59,10 +61,10 @@ export function ArticlesSection() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl mb-4">Artigos & Insights</h2>
+          <h2 className="text-4xl md:text-5xl mb-4">{t('articles.title')}</h2>
           <div className="w-20 h-1 bg-primary mx-auto rounded-full" />
           <p className="text-muted-foreground mt-4 max-w-2xl mx-auto">
-            Compartilho conhecimento e experiências sobre desenvolvimento, DevOps e design
+            {t('articles.subtitle')}
           </p>
         </motion.div>
 

@@ -28,7 +28,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const savedLang = (typeof window !== 'undefined' ? localStorage.getItem('lang') : null) as Lang | null;
 
     const initialTheme: Theme = savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : 'dark';
-    const initialLang: Lang = pathname?.startsWith('/en') ? 'en' : (savedLang === 'en' || savedLang === 'pt-BR' ? savedLang : 'pt-BR');
+    const initialLang: Lang = savedLang === 'en' || savedLang === 'pt-BR' ? savedLang : 'pt-BR'
 
     setThemeState(initialTheme);
     setLangState(initialLang);
@@ -70,6 +70,46 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       'hero.description': m.hero.description,
       'hero.cta_portfolio': m.hero.cta_portfolio,
       'hero.cta_contact': m.hero.cta_contact,
+      'about.title': m.about.title,
+      'about.p1': m.about.p1,
+      'about.p2': m.about.p2,
+      'about.p3': m.about.p3,
+      'about.stats.years.value': m.about.stats.years.value,
+      'about.stats.years.label': m.about.stats.years.label,
+      'about.stats.users.value': m.about.stats.users.value,
+      'about.stats.users.label': m.about.stats.users.label,
+      'about.stats.stacks.value': m.about.stats.stacks.value,
+      'about.stats.stacks.label': m.about.stats.stacks.label,
+      'skills.title': m.skills.title,
+      'skills.cat.frontend': m.skills.cat.frontend,
+      'skills.cat.backend': m.skills.cat.backend,
+      'skills.cat.devops': m.skills.cat.devops,
+      'skills.cat.database': m.skills.cat.database,
+      'skills.desc.frontend.1': m.skills.desc.frontend[1],
+      'skills.desc.frontend.2': m.skills.desc.frontend[2],
+      'skills.desc.frontend.3': m.skills.desc.frontend[3],
+      'skills.desc.backend.1': m.skills.desc.backend[1],
+      'skills.desc.backend.2': m.skills.desc.backend[2],
+      'skills.desc.backend.3': m.skills.desc.backend[3],
+      'skills.desc.devops.1': m.skills.desc.devops[1],
+      'skills.desc.devops.2': m.skills.desc.devops[2],
+      'skills.desc.devops.3': m.skills.desc.devops[3],
+      'skills.desc.database.1': m.skills.desc.database[1],
+      'skills.desc.database.2': m.skills.desc.database[2],
+      'skills.desc.database.3': m.skills.desc.database[3],
+      'projects.title': m.projects.title,
+      'projects.badge.private': m.projects.badge.private,
+      'projects.badge.public': m.projects.badge.public,
+      'projects.badge.authoral': m.projects.badge.authoral,
+      'projects.tech_used': m.projects.tech_used,
+      'projects.impact': m.projects.impact,
+      'articles.title': m.articles.title,
+      'articles.subtitle': m.articles.subtitle,
+      'contact.title': m.contact.title,
+      'contact.subtitle': m.contact.subtitle,
+      'contact.cta_email': m.contact.cta_email,
+      'testimonials.title': m.testimonials.title,
+      'footer.role': m.footer.role,
     };
     return (key: TranslationKey) => map[key] ?? key;
   }, [lang]);

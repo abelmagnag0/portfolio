@@ -1,20 +1,31 @@
 "use client";
-import { Button } from '@/library/components/button';
-import { Github, Linkedin, Mail, Phone } from '@/library/icons';
+import { Github, Linkedin, Mail } from '@/library/icons';
 import { motion } from '@/library/utils/motion';
+import { useSettings } from '@/library/utils/settings-provider';
+import React from 'react';
 
-const contactLinks = [
+type ContactLink = {
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  label: string;
+  value: string;
+  href: string;
+  external?: boolean;
+};
+
+const contactLinks: ContactLink[] = [
   {
     icon: Github,
     label: 'GitHub',
     value: 'abelmagnag0',
     href: 'https://github.com/abelmagnag0',
+    external: true,
   },
   {
     icon: Linkedin,
     label: 'LinkedIn',
     value: '/in/abel-magnago1',
     href: 'https://linkedin.com/in/abel-magnago1',
+    external: true,
   },
   {
     icon: Mail,
@@ -22,15 +33,10 @@ const contactLinks = [
     value: 'abel.magnago@gmail.com',
     href: 'mailto:abel.magnago@gmail.com',
   },
-  {
-    icon: Phone,
-    label: 'WhatsApp',
-    value: 'Disponível via LinkedIn',
-    href: 'https://linkedin.com/in/abel-magnago1',
-  },
 ];
 
 export function ContactSection() {
+  const { t } = useSettings();
   return (
     <section id="contato" className="py-24 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,20 +47,20 @@ export function ContactSection() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl mb-4">Vamos Conversar?</h2>
+          <h2 className="text-4xl md:text-5xl mb-4">{t('contact.title')}</h2>
           <div className="w-20 h-1 bg-primary mx-auto rounded-full mb-6" />
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Aberto a novos desafios que unam tecnologia, design e impacto real.
+            {t('contact.subtitle')}
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {contactLinks.map((link, index) => (
             <motion.a
               key={index}
               href={link.href}
-              target="_blank"
-              rel="noopener noreferrer"
+              target={link.external ? '_blank' : undefined}
+              rel={link.external ? 'noopener noreferrer' : undefined}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -64,30 +70,13 @@ export function ContactSection() {
               <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
                 <link.icon className="w-6 h-6 text-primary" />
               </div>
-              <div className="flex-grow">
+              <div className="grow">
                 <div className="text-sm text-muted-foreground">{link.label}</div>
-                <div className="group-hover:text-primary transition-colors">
-                  {link.value}
-                </div>
+                <div className="group-hover:text-primary transition-colors">{link.value}</div>
               </div>
             </motion.a>
           ))}
         </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="text-center mt-12"
-        >
-          <Button size="lg" className="gap-2" asChild>
-            <a href="mailto:abel.magnago@gmail.com">
-              <Mail className="w-4 h-4" />
-              Enviar Email
-            </a>
-          </Button>
-        </motion.div>
       </div>
     </section>
   );

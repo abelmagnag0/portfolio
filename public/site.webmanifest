@@ -1,0 +1,17 @@
+{
+  "name": "Abel Magnago",
+  "short_name": "AbelMagnago",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b1220",
+  "theme_color": "#0ea5e9",
+  "description": "Abel Magnago - Desenvolvedor Full Stack e Mobile (React, Next.js, Node.js, TypeScript, React Native e AWS).",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "16x16 32x32 48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}

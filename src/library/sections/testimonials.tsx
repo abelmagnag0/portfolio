@@ -1,7 +1,9 @@
+
 "use client";
 import { Avatar, AvatarFallback, AvatarImage } from '@/library/components/avatar';
 import { Quote } from '@/library/icons';
 import { motion } from '@/library/utils/motion';
+import { useSettings } from '@/library/utils/settings-provider';
 
 const testimonials = [
   {
@@ -31,6 +33,7 @@ const testimonials = [
 ];
 
 export function TestimonialsSection() {
+  const { t } = useSettings();
   return (
     <section className="py-24 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,7 +44,7 @@ export function TestimonialsSection() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl mb-4">Depoimentos</h2>
+          <h2 className="text-4xl md:text-5xl mb-4">{t('testimonials.title')}</h2>
           <div className="w-20 h-1 bg-primary mx-auto rounded-full" />
         </motion.div>
 

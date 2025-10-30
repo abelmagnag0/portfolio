@@ -1,6 +1,9 @@
+"use client";
 import { Github, Linkedin, Mail } from '@/library/icons';
+import { useSettings } from '@/library/utils/settings-provider';
 
 export function Footer() {
+  const { t } = useSettings();
   return (
     <footer className="border-t border-border py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -11,9 +14,7 @@ export function Footer() {
             </div>
             <div>
               <div>Abel Magnago</div>
-              <div className="text-sm text-muted-foreground">
-                Full-Stack & Mobile Developer
-              </div>
+              <div className="text-sm text-muted-foreground">{t('footer.role')}</div>
             </div>
           </div>
 
@@ -47,9 +48,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 pt-8 border-t border-border text-center">
-          <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-            © 2025 Abel Magnago
-          </p>
+          <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">© 2025 Abel Magnago</p>
         </div>
       </div>
     </footer>

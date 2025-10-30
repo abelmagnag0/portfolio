@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import * as React from "react";
 import { cn } from "./utils";
 
@@ -35,24 +36,37 @@ function Avatar({ className, children, ...props }: React.HTMLAttributes<HTMLDivE
   );
 }
 
-type AvatarImageProps = React.ImgHTMLAttributes<HTMLImageElement>;
-function AvatarImage({ className, onError, onLoad, alt = "", ...props }: AvatarImageProps) {
+type AvatarImageProps = {
+  src: string;
+  alt?: string;
+  className?: string;
+  onError?: () => void;
+  onLoad?: () => void;
+};
+function AvatarImage({ className, onError, onLoad, alt = "", src }: AvatarImageProps) {
   const { setLoaded, setError, error } = useAvatarCtx();
   return (
-    <img
-      data-slot="avatar-image"
-      className={cn("aspect-square size-full", className, error && "hidden")}
-      onLoad={(e) => {
-        setLoaded(true);
-        onLoad?.(e);
-      }}
-      onError={(e) => {
-        setError(true);
-        onError?.(e);
-      }}
-      alt={alt}
-      {...props}
-    />
+    <>
+      {!error && (
+        <Image
+          data-slot="avatar-image"
+          alt={alt}
+          src={src}
+          fill
+          sizes="40px"
+          className={cn("object-cover", className)}
+          onLoad={() => {
+            setLoaded(true);
+            onLoad?.();
+          }}
+          onError={() => {
+            setError(true);
+            onError?.();
+          }}
+          unoptimized
+        />
+      )}
+    </>
   );
 }
 

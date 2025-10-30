@@ -1,26 +1,15 @@
 "use client";
 import { Award, Code2, Users } from '@/library/icons';
 import { motion } from '@/library/utils/motion';
-
-const stats = [
-  {
-    icon: Award,
-    value: '+4 anos',
-    label: 'de experiência',
-  },
-  {
-    icon: Users,
-    value: '+30 mil',
-    label: 'usuários impactados',
-  },
-  {
-    icon: Code2,
-    value: '5 stacks',
-    label: 'dominadas',
-  },
-];
+import { useSettings } from '@/library/utils/settings-provider';
 
 export function AboutSection() {
+  const { t } = useSettings();
+  const stats = [
+    { icon: Award, value: t('about.stats.years.value'), label: t('about.stats.years.label') },
+    { icon: Users, value: t('about.stats.users.value'), label: t('about.stats.users.label') },
+    { icon: Code2, value: t('about.stats.stacks.value'), label: t('about.stats.stacks.label') },
+  ];
   return (
     <section id="sobre" className="py-24 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -31,7 +20,7 @@ export function AboutSection() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl mb-4">Sobre Mim</h2>
+          <h2 className="text-4xl md:text-5xl mb-4">{t('about.title')}</h2>
           <div className="w-20 h-1 bg-primary mx-auto rounded-full" />
         </motion.div>
 
@@ -43,20 +32,9 @@ export function AboutSection() {
             transition={{ duration: 0.6 }}
             className="space-y-6"
           >
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              Sou desenvolvedor com experiência em produtos educacionais e governamentais, 
-              com foco em escalabilidade, automação e UX.
-            </p>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              Atuo liderando times front-end e implementando pipelines CI/CD em nuvem, 
-              sempre buscando entregar soluções que combinem excelência técnica com 
-              impacto real para os usuários.
-            </p>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              Acredito que bons produtos nascem da união entre código limpo, design 
-              intuitivo e infraestrutura sólida. Meu objetivo é transformar desafios 
-              complexos em experiências simples e eficientes.
-            </p>
+            <p className="text-lg text-muted-foreground leading-relaxed">{t('about.p1')}</p>
+            <p className="text-lg text-muted-foreground leading-relaxed">{t('about.p2')}</p>
+            <p className="text-lg text-muted-foreground leading-relaxed">{t('about.p3')}</p>
           </motion.div>
 
           <motion.div
