@@ -77,6 +77,7 @@ export function HeroSection() {
                 src="/hero.jpeg"
                 alt="Abel Magnago"
                 className="relative rounded-full w-full h-full object-cover border-4 border-primary/20"
+                priority
               />
             </div>
           </motion.div>

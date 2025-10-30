@@ -1,11 +1,19 @@
 import { AboutSection } from '@/library/sections/about';
-import { ContactSection } from '@/library/sections/contact';
 import { Footer } from '@/library/sections/footer';
 import { HeroSection } from '@/library/sections/hero';
 import { Navbar } from '@/library/sections/navbar';
-import { ProjectsSection } from '@/library/sections/projects';
 import { SkillsSection } from '@/library/sections/skills';
 import { SettingsProvider } from '@/library/utils/settings-provider';
+import dynamic from 'next/dynamic';
+
+const ProjectsSection = dynamic(() => import('@/library/sections/projects').then(m => m.ProjectsSection), {
+  ssr: true,
+  loading: () => null,
+});
+const ContactSection = dynamic(() => import('@/library/sections/contact').then(m => m.ContactSection), {
+  ssr: true,
+  loading: () => null,
+});
 
 export default function Home() {
   return (

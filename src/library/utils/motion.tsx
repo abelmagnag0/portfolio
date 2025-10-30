@@ -99,9 +99,10 @@ function useMotionStyles(
   { initial, animate, whileInView, viewport, transition }: MotionCommonProps,
   nodeRef: React.RefObject<HTMLElement>,
 ) {
-  const mountedRef = React.useRef(false);
+  // Evita que o conteúdo apareça invisível antes da hidratação
+  const [mounted, setMounted] = React.useState(false);
   const inView = useInView(nodeRef, viewport);
-  const [active, setActive] = React.useState<MotionStyle | undefined>(initial);
+  const [active, setActive] = React.useState<MotionStyle | undefined>(undefined);
 
   const mergedAnimate = React.useMemo(() => mergeStyles(initial, animate), [initial, animate]);
   const mergedWhileInView = React.useMemo(
@@ -109,21 +110,63 @@ function useMotionStyles(
     [initial, whileInView],
   );
 
-  React.useEffect(() => {
-    if (!mountedRef.current) {
-      mountedRef.current = true;
-      if (mergedAnimate && !whileInView) {
-        const id = requestAnimationFrame(() => setActive(mergedAnimate));
-        return () => cancelAnimationFrame(id);
-      }
+  // Detecta preferência do usuário por reduzir animações
+  const prefersReduce = React.useMemo(() => {
+    if (typeof window === "undefined" || !("matchMedia" in window)) return false;
+    try {
+      return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    } catch {
+      return false;
     }
-  }, [mergedAnimate, whileInView]);
+  }, []);
 
   React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Animações de entrada (animate)
+  React.useEffect(() => {
+    if (!mounted) return;
+    if (whileInView) return; // tratado no efeito abaixo
+    if (!mergedAnimate) return;
+
+    // Se o usuário prefere reduzir, aplica o estado final imediatamente
+    if (prefersReduce) {
+      setActive(mergedAnimate);
+      return;
+    }
+
+    // Fallback robusto: usa rAF e também um setTimeout para garantir aplicação
+    let didApply = false;
+    const rafId = requestAnimationFrame(() => {
+      didApply = true;
+      setActive(mergedAnimate);
+    });
+    const toId = window.setTimeout(() => {
+      if (!didApply) setActive(mergedAnimate);
+    }, 250);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearTimeout(toId);
+    };
+  }, [mounted, mergedAnimate, prefersReduce, whileInView]);
+
+  // Animações baseadas em visibilidade (whileInView)
+  React.useEffect(() => {
+    if (!mounted) return;
     if (!whileInView) return;
+
+    if (prefersReduce) {
+      // Com redução de movimento, não escondemos o conteúdo: aplicamos estado final quando em view
+      if (inView) setActive(mergedWhileInView);
+      else if (!(viewport?.once ?? false)) setActive(undefined);
+      return;
+    }
+
     if (inView) setActive(mergedWhileInView);
     else if (!(viewport?.once ?? false)) setActive(initial);
-  }, [inView, whileInView, mergedWhileInView, initial, viewport?.once]);
+  }, [mounted, inView, whileInView, mergedWhileInView, initial, viewport?.once, prefersReduce]);
 
   const style: React.CSSProperties = React.useMemo(() => {
     const base = applyMotionStyle(active);
