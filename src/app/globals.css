@@ -175,4 +175,27 @@
 
 html {
   font-size: var(--font-size);
+  scroll-behavior: smooth;
+}
+
+/* Defer rendering of below-the-fold sections to reduce initial work */
+.cv-auto {
+  content-visibility: auto;
+  /* Estimate intrinsic size to avoid layout shift before paint */
+  contain-intrinsic-size: 800px;
+}
+
+/* ---------- Projects: comportamento desktop/touch ---------- */
+/* Desktop/notebook com cursor: manter logo sempre visível; preview discreta ao fundo */
+@media (hover: hover) and (pointer: fine) {
+  .project-card .logo { opacity: 1; background: var(--color-card); }
+  /* preview muito sutil ao fundo para dar cor sem escurecer */
+  .project-card .preview { opacity: 0.06; }
+  /* no hover exibimos uma overlay visual (definida no JSX) — manter preview sutil */
+}
+
+/* Dispositivos touch: manter logo visível; preview sutil para não escurecer */
+@media (hover: none), (pointer: coarse) {
+  .project-card .logo { opacity: 1; background: var(--color-card); }
+  .project-card .preview { opacity: 0.06; }
 }

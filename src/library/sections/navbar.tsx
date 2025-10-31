@@ -1,100 +1,57 @@
-"use client";
-import { Download, Moon, Sun } from '@/library/icons';
-import { motion } from '@/library/utils/motion';
-import { useSettings } from '@/library/utils/settings-provider';
+import { Download, Moon } from '@/library/icons';
 import { Button } from '../components/button';
 
 export function Navbar() {
-  const { theme, toggleTheme, lang, t, toggleLanguage } = useSettings();
-
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
-    <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
+    <nav
       className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-8">
-            <button
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="flex items-center gap-2"
-            >
+            <a href="#" className="flex items-center gap-2">
               <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
                 <span className="text-white">AM</span>
               </div>
-            </button>
+            </a>
             <div className="hidden md:flex items-center gap-6">
-              <button
-                onClick={() => scrollToSection('sobre')}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {t('nav.about')}
-              </button>
-              <button
-                onClick={() => scrollToSection('projetos')}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {t('nav.projects')}
-              </button>
-              <button
-                onClick={() => scrollToSection('artigos')}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {t('nav.articles')}
-              </button>
-              <button
-                onClick={() => scrollToSection('contato')}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {t('nav.contact')}
-              </button>
+              <a href="#sobre" className="text-muted-foreground hover:text-foreground transition-colors">
+                Sobre
+              </a>
+              <a href="#projetos" className="text-muted-foreground hover:text-foreground transition-colors">
+                Projetos
+              </a>
+              <a href="#artigos" className="text-muted-foreground hover:text-foreground transition-colors">
+                Artigos
+              </a>
+              <a href="#contato" className="text-muted-foreground hover:text-foreground transition-colors">
+                Contato
+              </a>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Toggle de tema sem hidratação React */}
             <button
-              onClick={toggleLanguage}
-              className="px-2 py-1 rounded-lg hover:bg-accent text-sm text-muted-foreground transition-colors border border-border"
-              aria-label="Toggle language"
-              title={t('nav.switch_language_title')}
-            >
-              {lang === 'pt-BR' ? 'EN' : 'PT'}
-            </button>
-            <button
-              onClick={toggleTheme}
               className="p-2 rounded-lg hover:bg-accent transition-colors"
-              aria-label="Toggle theme"
+              aria-label="Alternar tema"
+              title="Alternar tema"
+              data-theme-toggle
             >
-              {theme === 'dark' ? (
-                <Sun className="w-5 h-5" />
-              ) : (
-                <Moon className="w-5 h-5" />
-              )}
+              <Moon className="w-5 h-5" />
             </button>
             <Button className="gap-2" asChild>
               <a
-                href={
-                  lang === 'en'
-                    ? '/cv/Abel%20Magnago%20CV%20EN.pdf'
-                    : '/cv/Abel%20Magnago%20CV%20PT-BR.pdf'
-                }
+                href={'/cv/Abel%20Magnago%20CV%20PT-BR.pdf'}
                 download
               >
                 <Download className="w-4 h-4" />
-                {t('nav.download_cv')}
+                Baixar CV
               </a>
             </Button>
           </div>
         </div>
       </div>
-    </motion.nav>
+    </nav>
   );
 }

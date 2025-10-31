@@ -1,18 +1,9 @@
-"use client";
-import { Button } from '@/library/components/button';
-import { ImageWithFallback } from '@/library/components/image-with-fallback';
+/* eslint-disable @next/next/no-img-element */
 import { ArrowRight, Mail } from '@/library/icons';
-import { motion } from '@/library/utils/motion';
-import { useSettings } from '@/library/utils/settings-provider';
+import { dictionary } from '@/library/utils/dictionary';
 
 export function HeroSection() {
-  const { t } = useSettings();
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  const hero = dictionary['pt-BR'].hero;
 
   return (
     <section className="min-h-screen flex items-center justify-center relative overflow-hidden pt-16">
@@ -22,14 +13,9 @@ export function HeroSection() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid md:grid-cols-2 gap-12 items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-            className="space-y-6"
-          >
+          <div className="space-y-6">
             <div className="inline-block px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-              <span className="text-primary">{t('hero.available')}</span>
+              <span className="text-primary">{hero.available}</span>
             </div>
             
             <h1 className="text-5xl md:text-6xl lg:text-7xl">
@@ -37,50 +23,38 @@ export function HeroSection() {
             </h1>
             
             <p className="text-2xl md:text-3xl text-muted-foreground">
-              {t('hero.role')}
+              {hero.role}
             </p>
             
             <p className="text-lg text-muted-foreground max-w-xl">
-              {t('hero.description')}
+              {hero.description}
             </p>
             
             <div className="flex flex-wrap gap-4 pt-4">
-              <Button
-                size="lg"
-                onClick={() => scrollToSection('projetos')}
-                className="gap-2"
-              >
-                {t('hero.cta_portfolio')}
+              <a href="#projetos" className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-10 rounded-md px-6">
+                {hero.cta_portfolio}
                 <ArrowRight className="w-4 h-4" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => scrollToSection('contato')}
-                className="gap-2"
-              >
+              </a>
+              <a href="#contato" className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background text-foreground hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-10 rounded-md px-6">
                 <Mail className="w-4 h-4" />
-                {t('hero.cta_contact')}
-              </Button>
+                {hero.cta_contact}
+              </a>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative"
-          >
+          <div className="relative">
             <div className="relative w-full aspect-square max-w-md mx-auto">
               <div className="absolute inset-0 bg-linear-to-br from-primary to-primary/50 rounded-full blur-2xl opacity-30" />
-              <ImageWithFallback
-                src="/hero.jpeg"
+              <img
+                src="/hero.webp"
                 alt="Abel Magnago"
                 className="relative rounded-full w-full h-full object-cover border-4 border-primary/20"
-                priority
+                fetchPriority="high"
+                decoding="async"
+                loading="eager"
               />
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

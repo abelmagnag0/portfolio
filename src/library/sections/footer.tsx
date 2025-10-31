@@ -1,9 +1,8 @@
-"use client";
 import { Github, Linkedin, Mail } from '@/library/icons';
-import { useSettings } from '@/library/utils/settings-provider';
+import { dictionary } from '@/library/utils/dictionary';
 
 export function Footer() {
-  const { t } = useSettings();
+  const m = dictionary['pt-BR'];
   return (
     <footer className="border-t border-border py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -14,7 +13,7 @@ export function Footer() {
             </div>
             <div>
               <div>Abel Magnago</div>
-              <div className="text-sm text-muted-foreground">{t('footer.role')}</div>
+              <div className="text-sm text-muted-foreground">{m.footer.role}</div>
             </div>
           </div>
 

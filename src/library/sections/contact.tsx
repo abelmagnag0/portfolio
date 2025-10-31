@@ -1,7 +1,5 @@
-"use client";
 import { Github, Linkedin, Mail } from '@/library/icons';
-import { motion } from '@/library/utils/motion';
-import { useSettings } from '@/library/utils/settings-provider';
+import { dictionary } from '@/library/utils/dictionary';
 import React from 'react';
 
 type ContactLink = {
@@ -36,35 +34,25 @@ const contactLinks: ContactLink[] = [
 ];
 
 export function ContactSection() {
-  const { t } = useSettings();
+  const m = dictionary['pt-BR'];
   return (
-    <section id="contato" className="py-24 bg-muted/30">
+    <section id="contato" className="py-24 bg-muted/30 cv-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl mb-4">{t('contact.title')}</h2>
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl mb-4">{m.contact.title}</h2>
           <div className="w-20 h-1 bg-primary mx-auto rounded-full mb-6" />
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            {t('contact.subtitle')}
+            {m.contact.subtitle}
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {contactLinks.map((link, index) => (
-            <motion.a
+            <a
               key={index}
               href={link.href}
               target={link.external ? '_blank' : undefined}
               rel={link.external ? 'noopener noreferrer' : undefined}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
               className="group bg-card border border-border rounded-2xl p-6 hover:border-primary/50 transition-all flex items-center gap-4"
             >
               <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
@@ -74,7 +62,7 @@ export function ContactSection() {
                 <div className="text-sm text-muted-foreground">{link.label}</div>
                 <div className="group-hover:text-primary transition-colors">{link.value}</div>
               </div>
-            </motion.a>
+            </a>
           ))}
         </div>
       </div>

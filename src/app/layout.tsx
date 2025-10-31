@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     locale: "pt_BR",
     images: [
       {
-        url: "/hero.jpeg",
+        url: "/hero.webp",
         width: 1200,
         height: 1200,
         alt: "Abel Magnago",
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
       "Desenvolvedor Full Stack: React, Next.js, Node.js, TypeScript, React Native e AWS.",
     images: [
       {
-        url: "/hero.jpeg",
+        url: "/hero.webp",
         alt: "Abel Magnago",
       },
     ],
@@ -112,10 +112,31 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {/* Evita flash de tema e adiciona toggle leve sem React */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(() => { try { 
+  const r = document.documentElement;
+  const getStored = () => (localStorage.getItem('theme'));
+  const prefersDark = () => (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const apply = (t) => { if (t === 'dark') r.classList.add('dark'); else r.classList.remove('dark'); };
+  const initial = (() => { const s = getStored(); return (s === 'light' || s === 'dark') ? s : (prefersDark() ? 'dark' : 'light'); })();
+  apply(initial);
+  // Toggle por delegação (sem esperar DOMContentLoaded)
+  document.addEventListener('click', (e) => {
+    const btn = (e.target && (e.target.closest ? e.target.closest('[data-theme-toggle]') : null));
+    if (!btn) return;
+    const next = r.classList.contains('dark') ? 'light' : 'dark';
+    localStorage.setItem('theme', next);
+    apply(next);
+  }, true);
+} catch(_){} })();`,
+          }}
+        />
         {children}
       </body>
     </html>
