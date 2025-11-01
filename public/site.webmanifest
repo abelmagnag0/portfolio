@@ -1,5 +1,5 @@
 {
-  "name": "Abel Magnago",
+  "name": "Abel Magnago · Portfólio",
   "short_name": "AbelMagnago",
   "start_url": "/",
   "scope": "/",
@@ -9,9 +9,25 @@
   "description": "Abel Magnago - Desenvolvedor Full Stack e Mobile (React, Next.js, Node.js, TypeScript, React Native e AWS).",
   "icons": [
     {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
       "src": "/icon.png",
-      "sizes": "16x16 32x32 48x48",
-      "type": "image/x-icon"
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ]
 }

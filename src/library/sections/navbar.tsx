@@ -9,7 +9,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-8">
-            <a href="#" className="flex items-center gap-2">
+            <a href="#home" className="flex items-center gap-2">
               <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
                 <span className="text-white">AM</span>
               </div>
@@ -21,9 +21,9 @@ export function Navbar() {
               <a href="#projetos" className="text-muted-foreground hover:text-foreground transition-colors">
                 Projetos
               </a>
-              <a href="#artigos" className="text-muted-foreground hover:text-foreground transition-colors">
+              {/* <a href="#artigos" className="text-muted-foreground hover:text-foreground transition-colors">
                 Artigos
-              </a>
+              </a> */}
               <a href="#contato" className="text-muted-foreground hover:text-foreground transition-colors">
                 Contato
               </a>
