@@ -79,3 +79,28 @@ Supported envs for the script (optional):
 - Optional: add a CloudFront Function to force `www → apex` redirect.
 
 ---
+
+## SEO
+
+- Meta tags e Open Graph via Metadata API do Next (App Router) em `src/app/layout.tsx`.
+  - OG/Twitter usam imagem 1200×630 gerada dinamicamente em `src/app/opengraph-image.tsx` (ideal para LinkedIn/Twitter).
+  - `metadataBase` garante URLs absolutas.
+- `next-seo` instalado e usado para JSON-LD:
+  - Perfil do autor com `ProfilePageJsonLd` no layout (global).
+  - `ProjectsJsonLd` gera automaticamente um `ItemList` de projetos a partir de `projects.data.ts`.
+  - `NavigationJsonLd` publica `SiteNavigationElement` com as âncoras da home.
+- Sitemap e Robots prontos com a Metadata Route do Next:
+  - `src/app/sitemap.ts` e `src/app/robots.ts` usam `SITE_URL` centralizado.
+
+Boas práticas adotadas:
+
+- Canonical definido; locale `pt-BR`; título com template; descrição clara e focada em palavras-chave reais.
+- OG otimizado (1200×630, `summary_large_image`).
+- Estruturas JSON-LD para contexto da página (pessoa, navegação e lista de projetos).
+- Revalidação diária de `robots`, `sitemap` e imagem OG para export estático.
+
+Como validar:
+
+- Rich Results Test (Google)
+- Card Validator (Twitter) / Post Inspector (LinkedIn)
+

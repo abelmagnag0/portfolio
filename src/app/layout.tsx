@@ -1,4 +1,6 @@
+import { DEFAULT_OG, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/library/seo/site";
 import type { Metadata, Viewport } from "next";
+import { ProfilePageJsonLd } from "next-seo";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -13,14 +15,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://abel.dev.br"),
+  metadataBase: new URL(SITE_URL),
   applicationName: "Abel Magnago · Portfólio",
   title: {
-    default: "Abel Magnago",
-    template: "%s | Abel Magnago",
+    default: SITE_NAME,
+    template: `%s | ${SITE_NAME}`,
   },
-  description:
-    "Desenvolvedor Full Stack e Mobile. Especialista em React, Next.js, Node.js, TypeScript, React Native e AWS.",
+  description: SITE_DESCRIPTION,
   keywords: [
     "Abel Magnago",
     "Abel dev",
@@ -47,33 +48,35 @@ export const metadata: Metadata = {
   category: "technology",
   alternates: {
     canonical: "/",
+    languages: {
+      "pt-BR": "/",
+    },
   },
   openGraph: {
     type: "website",
-    url: "https://abel.dev.br/",
-    title: "Abel Magnago",
-    description:
-      "Desenvolvedor Full Stack: React, Next.js, Node.js, TypeScript, React Native e AWS.",
-    siteName: "Abel Magnago",
+    url: SITE_URL + "/",
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    siteName: SITE_NAME,
     locale: "pt_BR",
     images: [
       {
-        url: "/hero.webp",
-        width: 1200,
-        height: 1200,
-        alt: "Abel Magnago",
+        url: DEFAULT_OG.url,
+        width: DEFAULT_OG.width,
+        height: DEFAULT_OG.height,
+        alt: DEFAULT_OG.alt,
+        type: DEFAULT_OG.type,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Abel Magnago",
-    description:
-      "Desenvolvedor Full Stack: React, Next.js, Node.js, TypeScript, React Native e AWS.",
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
     images: [
       {
-        url: "/hero.webp",
-        alt: "Abel Magnago",
+        url: DEFAULT_OG.url,
+        alt: DEFAULT_OG.alt,
       },
     ],
   },
@@ -122,6 +125,19 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {/* JSON-LD global: página de perfil da pessoa (ideal para portfólio pessoal) */}
+        <ProfilePageJsonLd
+          mainEntity={{
+            name: SITE_NAME,
+            alternateName: "Abel dev",
+            description: SITE_DESCRIPTION,
+            sameAs: [
+              "https://github.com/abelmagnag0",
+              "https://www.linkedin.com/in/abel-magnago1",
+            ],
+            url: SITE_URL,
+          }}
+        />
         {/* Evita flash de tema e adiciona toggle leve sem React */}
         <script
           dangerouslySetInnerHTML={{
