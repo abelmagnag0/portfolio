@@ -1,5 +1,7 @@
+"use client";
 import { Github, Linkedin, Mail } from '@/library/icons';
 import { dictionary } from '@/library/utils/dictionary';
+import { useSettings } from '@/library/utils/settings-provider';
 import React from 'react';
 
 type ContactLink = {
@@ -34,9 +36,10 @@ const contactLinks: ContactLink[] = [
 ];
 
 export function ContactSection() {
-  const m = dictionary['pt-BR'];
+  const { lang } = useSettings();
+  const m = dictionary[lang];
   return (
-    <section id="contato" className="py-24 bg-muted/30 cv-auto">
+    <section id="contact" className="py-24 bg-muted/30 cv-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl mb-4">{m.contact.title}</h2>

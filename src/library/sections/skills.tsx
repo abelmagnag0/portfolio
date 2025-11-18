@@ -1,9 +1,12 @@
+"use client";
 import { Cloud, Code2, Database, Server } from '@/library/icons';
 import { dictionary } from '@/library/utils/dictionary';
+import { useSettings } from '@/library/utils/settings-provider';
 
-function getSkillCategories() {
-  const m = dictionary['pt-BR'];
-  return [
+export function SkillsSection() {
+  const { lang } = useSettings();
+  const m = dictionary[lang];
+  const skillCategories = [
     {
       title: m.skills.cat.frontend,
       icon: Code2,
@@ -45,11 +48,6 @@ function getSkillCategories() {
       ],
     },
   ];
-}
-
-export function SkillsSection() {
-  const m = dictionary['pt-BR'];
-  const skillCategories = getSkillCategories();
   return (
     <section className="py-24 bg-muted/30 cv-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -8,8 +8,8 @@ export function NavigationJsonLd() {
   const data = {
     "@context": "https://schema.org",
     "@type": "SiteNavigationElement",
-    name: ["Home", "Projetos", "Contato"],
-    url: [`${SITE_URL}/#home`, `${SITE_URL}/#projetos`, `${SITE_URL}/#contato`],
+    name: ["Home", "Projects", "Contact"],
+    url: [`${SITE_URL}/#home`, `${SITE_URL}/#projects`, `${SITE_URL}/#contact`],
   } as const;
 
   return <JsonLdScript data={data} scriptKey="site-navigation" />;

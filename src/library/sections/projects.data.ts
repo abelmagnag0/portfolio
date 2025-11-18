@@ -1,4 +1,15 @@
+import type { Lang } from '@/library/utils/dictionary';
+
 export type ProjectType = 'privado' | 'autoral' | 'publico';
+
+export type ProjectCopy = {
+  title: string;
+  description: string;
+  longDescription: string;
+  impact?: string;
+};
+
+type ProjectTranslations = Partial<Record<Lang, Partial<ProjectCopy>>>;
 
 export type Project = {
   key: string; // pasta em public/projects/<key>
@@ -13,7 +24,18 @@ export type Project = {
   logo?: string; // /projects/<key>/logo.avif
   card?: string; // /projects/<key>/card.avif
   gallery?: string[]; // /projects/<key>/gallery/*.avif (1x)
+  translations?: ProjectTranslations;
 };
+
+export function getProjectCopy(project: Project, lang: Lang): ProjectCopy {
+  const override = project.translations?.[lang] ?? {};
+  return {
+    title: override.title ?? project.title,
+    description: override.description ?? project.description,
+    longDescription: override.longDescription ?? project.longDescription,
+    impact: override.impact ?? project.impact,
+  };
+}
 
 export const projectsData: Project[] = [
   {
@@ -26,6 +48,15 @@ export const projectsData: Project[] = [
     stack: ['Node.js', 'EJS', 'MongoDB', 'WebSockets', 'Docker', 'IA'],
     type: 'privado',
     impact: 'Uso interno por múltiplos perfis (auditoria e jurídico) com alto volume de documentos',
+    translations: {
+      en: {
+        title: 'Internal Audit System',
+        description: 'Platform for internal audits in a public agency',
+        longDescription:
+          'Robust system built for auditors, legal advisors, the comptroller, and other teams. Supports auditing reports, tracking benefits, contracts, and documents with well-defined workflows. Built with Node, EJS, MongoDB, WebSockets, Docker, and AI-powered editors.',
+        impact: 'Internal use across multiple profiles (audit and legal) with high document volume',
+      },
+    },
   },
   {
     key: 'ia',
@@ -37,6 +68,15 @@ export const projectsData: Project[] = [
     stack: ['React', 'Tailwind', 'FastAPI', 'Docker', 'MongoDB'],
     type: 'privado',
     impact: 'Acelera a produção de documentos e consultas jurídicas',
+    translations: {
+      en: {
+        title: 'Legal AI Assistant',
+        description: 'AI trained on legal and administrative documents',
+        longDescription:
+          'AI assistant powered by a dataset of contracts, decrees, and documents used by legal and audit teams. Helps draft texts and clarify questions. Stack: React, Tailwind, FastAPI, Docker, MongoDB.',
+        impact: 'Speeds up document production and legal research',
+      },
+    },
   },
   {
     key: 'lms',
@@ -59,6 +99,15 @@ export const projectsData: Project[] = [
       '/projects/lms/gallery/01.avif',
       '/projects/lms/gallery/02.avif',
     ],
+    translations: {
+      en: {
+        title: 'LMS Platform (E-learning)',
+        description: 'Classes, live sessions, exercises, exams, essays, and study plans',
+        longDescription:
+          'Complete e-learning platform with a whitelabel system: one configuration base powers multiple applications across different domains. Built with React, Redux, Node, GraphQL, Yup. Serves more than 30k users.',
+        impact: '30k+ active users',
+      },
+    },
   },
   {
     key: 'partner',
@@ -75,6 +124,15 @@ export const projectsData: Project[] = [
     stack: ['React', 'styled-components', 'Zod', 'Immer'],
     type: 'privado',
     impact: 'Melhora o pós-venda e a experiência do cliente',
+    translations: {
+      en: {
+        title: 'Partner Portal',
+        description: 'Customers track orders, deliveries, and returns',
+        longDescription:
+          'Portal for partners that purchase educational materials. Tracks deliveries, orders, and returns with a clean UI and well-abstracted architecture. Stack: React, styled-components, Zod, Immer; components shipped in a private library.',
+        impact: 'Improves post-sales and the customer experience',
+      },
+    },
   },
   {
     key: 'partner-admin',
@@ -86,6 +144,15 @@ export const projectsData: Project[] = [
     stack: ['React', 'styled-components', 'Zod', 'Immer'],
     type: 'privado',
     impact: 'Centraliza e agiliza fluxos de operação',
+    translations: {
+      en: {
+        title: 'Operations Management Portal',
+        description: 'Manage returns, deliveries, and reports',
+        longDescription:
+          'Administrative version of the Partner Portal, focused on analysing returns, managing deliveries, and generating reports. Shares the same technology stack and standards as the partner project.',
+        impact: 'Centralises and speeds up operational workflows',
+      },
+    },
   },
   {
     key: 'sisu',
@@ -97,6 +164,15 @@ export const projectsData: Project[] = [
     stack: ['Next.js', 'styled-components', 'SEO'],
     type: 'publico',
     impact: 'Auxilia candidatos a entenderem suas chances de ingresso',
+    translations: {
+      en: {
+        title: 'SISU Score Simulator',
+        description: 'Simulate ENEM scores to plan SISU applications',
+        longDescription:
+          'Next.js app with styled-components that lets students input their scores and simulate SISU results through configurable parameters. Clean design and strong SEO with great Google indexing.',
+        impact: 'Helps applicants understand their admission chances',
+      },
+    },
   },
   {
     key: 'storybook',
@@ -108,6 +184,15 @@ export const projectsData: Project[] = [
     stack: ['React', 'Storybook', 'npm'],
     type: 'autoral',
     impact: 'Reuso consistente e acelerado em múltiplos apps',
+    translations: {
+      en: {
+        title: 'Component Library (Storybook)',
+        description: 'Manual design system with no layout dependencies',
+        longDescription:
+          'Component library built from scratch without layout or styling dependencies. Based on Storybook + React and published privately on npm. Powers compositions reused across other projects.',
+        impact: 'Consistent, accelerated reuse across multiple apps',
+      },
+    },
   },
   {
     key: 'travel',
@@ -119,5 +204,14 @@ export const projectsData: Project[] = [
     stack: ['Node.js', 'Express', 'EJS', 'Tailwind'],
     type: 'privado',
     impact: 'Digitaliza e formaliza o fluxo de solicitações oficiais',
+    translations: {
+      en: {
+        title: 'Government Travel and Per Diem',
+        description: 'Requests for per diems, events, and flights',
+        longDescription:
+          'System for state employees to request per diem payments, register for paid events, and book flights. Full end-to-end delivery: Figma, Node/Express backend, and EJS with Tailwind on the frontend.',
+        impact: 'Digitizes and formalizes official request workflows',
+      },
+    },
   },
 ];

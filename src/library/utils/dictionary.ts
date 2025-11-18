@@ -239,7 +239,7 @@ export const dictionary: Record<Lang, Messages> = {
     },
     projects: {
       title: 'Featured Projects',
-      badge: { private: 'Private', public: 'Public', authoral: 'Authoral' },
+      badge: { private: 'Private', public: 'Public', authoral: 'Authorial' },
       tech_used: 'Technologies used:',
       impact: 'Impact',
     },

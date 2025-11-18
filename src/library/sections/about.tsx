@@ -1,15 +1,18 @@
+"use client";
 import { Award, Code2, Users } from '@/library/icons';
 import { dictionary } from '@/library/utils/dictionary';
+import { useSettings } from '@/library/utils/settings-provider';
 
 export function AboutSection() {
-  const about = dictionary['pt-BR'].about;
+  const { lang } = useSettings();
+  const about = dictionary[lang].about;
   const stats = [
     { icon: Award, value: about.stats.years.value, label: about.stats.years.label },
     { icon: Users, value: about.stats.users.value, label: about.stats.users.label },
     { icon: Code2, value: about.stats.stacks.value, label: about.stats.stacks.label },
   ];
   return (
-    <section id="sobre" className="py-24 relative">
+    <section id="about" className="py-24 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl mb-4">{about.title}</h2>

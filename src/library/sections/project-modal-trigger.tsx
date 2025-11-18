@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/library/components/utils";
+import { useSettings } from "@/library/utils/settings-provider";
 import { useCallback, useState, type ComponentType, type ReactNode } from "react";
 import type { Project } from "./projects.data";
 
@@ -13,9 +14,12 @@ type TriggerProps = {
 };
 
 // Carrega o modal apenas quando necessário
-export function ProjectModalTrigger({ project, overlay = false, className, label = "Ver detalhes", children }: TriggerProps) {
+export function ProjectModalTrigger({ project, overlay = false, className, label, children }: TriggerProps) {
+  const { lang } = useSettings();
   const [open, setOpen] = useState(false);
   const [LoadedModal, setLoadedModal] = useState<null | ComponentType<{ project: Project; open: boolean; onOpenChangeAction: (v: boolean) => void }>>(null);
+  const defaultLabel = lang === 'pt-BR' ? 'Ver detalhes' : 'View details';
+  const resolvedLabel = label ?? defaultLabel;
 
   const onClick = useCallback(async () => {
     if (!LoadedModal) {
@@ -35,9 +39,9 @@ export function ProjectModalTrigger({ project, overlay = false, className, label
         type="button"
         onClick={onClick}
         className={btnClass}
-        aria-label={overlay ? label : undefined}
+        aria-label={overlay ? resolvedLabel : undefined}
       >
-        {overlay ? null : (children ?? label)}
+        {overlay ? null : (children ?? resolvedLabel)}
       </button>
       {LoadedModal && (
         <LoadedModal project={project} open={open} onOpenChangeAction={setOpen} />

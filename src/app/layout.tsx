@@ -1,3 +1,4 @@
+import { SettingsProvider } from "@/library/utils/settings-provider";
 import { DEFAULT_OG, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/library/seo/site";
 import type { Metadata, Viewport } from "next";
 import { ProfilePageJsonLd } from "next-seo";
@@ -159,7 +160,9 @@ export default function RootLayout({
 } catch(_){} })();`,
           }}
         />
-        {children}
+        <SettingsProvider>
+          {children}
+        </SettingsProvider>
       </body>
     </html>
   );

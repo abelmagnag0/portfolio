@@ -1,8 +1,11 @@
+"use client";
 import { Github, Linkedin, Mail } from '@/library/icons';
 import { dictionary } from '@/library/utils/dictionary';
+import { useSettings } from '@/library/utils/settings-provider';
 
 export function Footer() {
-  const m = dictionary['pt-BR'];
+  const { lang } = useSettings();
+  const m = dictionary[lang];
   return (
     <footer className="border-t border-border py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

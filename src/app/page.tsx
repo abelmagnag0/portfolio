@@ -13,12 +13,10 @@ import { WebsiteJsonLd } from '@/library/seo/website-jsonld';
 export default function Home() {
   return (
     <>
-  {/* JSON-LD automáticos da página: WebSite (site name e search box), Navegação e lista de projetos */}
-  <WebsiteJsonLd />
+      <WebsiteJsonLd />
       <NavigationJsonLd />
       <ProjectsJsonLd projects={projectsData} />
       <div className="min-h-screen">
-        {/* Navbar agora é componente de servidor com island apenas para o toggle de tema */}
         <Navbar />
         <main>
           <HeroSection />
