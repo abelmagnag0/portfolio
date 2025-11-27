@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
   output: 'export',
   // Evita warning de lockfiles em diretórios acima (monorepo, home etc.)
   outputFileTracingRoot: __dirname,
+  images: {
+    // Desativa otimização server-side para compatibilidade com export estático
+    unoptimized: true,
+  },
 };
 
 export default nextConfig;

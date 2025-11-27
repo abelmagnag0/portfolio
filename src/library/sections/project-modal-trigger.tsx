@@ -30,8 +30,8 @@ export function ProjectModalTrigger({ project, overlay = false, className, label
   }, [LoadedModal]);
 
   const btnClass = overlay
-    ? cn("absolute inset-0 z-30 opacity-0 focus:opacity-0", className)
-    : cn("mt-2 text-sm text-primary hover:underline");
+    ? cn("absolute inset-0 z-30 opacity-0 focus:opacity-0 cursor-pointer", className)
+    : cn("mt-2 text-sm text-primary hover:underline cursor-pointer");
 
   return (
     <>
