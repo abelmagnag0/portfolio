@@ -19,8 +19,8 @@ export function ProjectsJsonLd({ projects }: Props) {
       "@type": "CreativeWork",
       name: p.title,
       description: p.description,
-      ...(p.images?.[0]
-        ? { image: new URL(p.images[0], SITE_URL).toString() }
+      ...(p.gallery?.[0] ?? p.images?.[0]
+        ? { image: new URL(p.gallery?.[0] ?? p.images?.[0]!, SITE_URL).toString() }
         : {}),
     },
   }));

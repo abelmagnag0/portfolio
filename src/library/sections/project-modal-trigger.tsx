@@ -18,7 +18,7 @@ export function ProjectModalTrigger({ project, overlay = false, className, label
   const { lang } = useSettings();
   const [open, setOpen] = useState(false);
   const [LoadedModal, setLoadedModal] = useState<null | ComponentType<{ project: Project; open: boolean; onOpenChangeAction: (v: boolean) => void }>>(null);
-  const defaultLabel = lang === 'pt-BR' ? 'Ver detalhes' : 'View details';
+  const defaultLabel = lang === 'pt-BR' ? 'Ver case completo' : 'View full case';
   const resolvedLabel = label ?? defaultLabel;
 
   const onClick = useCallback(async () => {

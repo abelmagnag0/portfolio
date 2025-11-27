@@ -1,4 +1,6 @@
 "use client";
+import { Badge } from '@/library/components/badge';
+import { Globe, Lock } from '@/library/icons';
 import { dictionary } from '@/library/utils/dictionary';
 import { useSettings } from '@/library/utils/settings-provider';
 import { ProjectModalTrigger } from './project-modal-trigger';
@@ -7,19 +9,40 @@ import { getProjectCopy, projectsData, type Project } from './projects.data';
 function TypeBadge({ type }: { type: Project['type'] }) {
   const { lang } = useSettings();
   const badge = dictionary[lang].projects.badge;
-  const text = type === 'privado' ? badge.private : type === 'autoral' ? badge.authoral : badge.public;
+  const config = (() => {
+    if (type === 'publico') {
+      return {
+        className: 'border-transparent bg-[#244782] text-white hover:bg-[#244782]/90 focus-visible:ring-[#244782]/30',
+        icon: <Globe className="w-3 h-3" />,
+        label: badge.public,
+      } as const;
+    }
+    if (type === 'privado') {
+      return {
+        className: 'border-transparent bg-[#8f1d1d] text-white hover:bg-[#8f1d1d]/90 focus-visible:ring-[#8f1d1d]/30',
+        icon: <Lock className="w-3 h-3" />,
+        label: badge.private,
+      } as const;
+    }
+    return {
+      className: 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-primary/30',
+      icon: <Globe className="w-3 h-3" />,
+      label: badge.authoral,
+    } as const;
+  })();
+
   return (
-    <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs text-muted-foreground">
-      {text}
-    </span>
+    <Badge variant="outline" className={config.className}>
+      {config.icon}
+      {config.label}
+    </Badge>
   );
 }
 
 export function ProjectsSectionSSR() {
   const { lang } = useSettings();
   const m = dictionary[lang].projects;
-  // Mostrar apenas o projeto LMS por enquanto
-  const cards: Project[] = projectsData.filter((p) => p.key === 'lms');
+  const cards: Project[] = projectsData;
 
   return (
     <section id="projects" className="py-24">
@@ -35,28 +58,29 @@ export function ProjectsSectionSSR() {
             const logo1x = project.logo || project.images?.[0] || '';
             const isLogoAvif = logo1x.endsWith('.avif');
             const logo2x = isLogoAvif ? logo1x.replace('.avif', '@2x.avif') : logo1x;
-            const card1x = project.card || project.images?.[0] || '';
-            const isCardAvif = card1x.endsWith('.avif');
-            const card2x = isCardAvif ? card1x.replace('.avif', '@2x.avif') : card1x;
-            const overlayPrompt = lang === 'pt-BR' ? 'Clique para ver mais' : 'Click to see more';
+            const card1x = project.card || project.gallery?.[0] || project.images?.[0] || logo1x;
+            const isCardAvif = !!project.card && card1x.endsWith('.avif');
+            const card2x = isCardAvif ? card1x.replace('.avif', '@2x.avif') : '';
+            const overlayPrompt = lang === 'pt-BR' ? 'Ver case completo' : 'View full case';
             const modalLabel = lang === 'pt-BR'
-              ? `Abrir detalhes do projeto ${copy.title}`
-              : `Open project details for ${copy.title}`;
+              ? `Abrir case completo de ${copy.title}`
+              : `Open full case for ${copy.title}`;
             const previewAlt = lang === 'pt-BR' ? `Prévia do projeto ${copy.title}` : `Project preview for ${copy.title}`;
             const logoAlt = lang === 'pt-BR' ? `Logo do projeto ${copy.title}` : `Project logo for ${copy.title}`;
             return (
               <article
                 key={project.key}
-                className="group relative bg-card border border-border rounded-2xl overflow-hidden h-full flex flex-col mx-auto w-full max-w-[260px] md:max-w-[274px] lg:max-w-[250px]"
+                id={`project-${project.key}`}
+                className="group relative border border-border rounded-2xl overflow-hidden h-full flex flex-col mx-auto w-full max-w-[260px] md:max-w-[274px] lg:max-w-[250px] bg-muted dark:bg-card shadow-sm hover:shadow-md hover:border-primary/50 dark:shadow-none dark:hover:shadow-none transition-all"
               >
                 {/* Botão invisível cobrindo todo o card para abrir o modal */}
                 <ProjectModalTrigger project={project} overlay label={modalLabel} />
 
                 {/* Área de mídia com dimensão fixa para todas resoluções (logo sempre contida) */}
-                <div className="relative overflow-hidden project-card h-56 w-full">
+                <div className="relative overflow-hidden project-card aspect-square w-full bg-muted dark:bg-muted/20 border-b border-border">
                   {/* Preview (hover/touch) */}
                   <picture className="absolute inset-0">
-                    {isCardAvif && (
+                    {isCardAvif && card2x && (
                       <source srcSet={`${card1x} 1x, ${card2x} 2x`} type="image/avif" />
                     )}
                     <img
@@ -68,7 +92,7 @@ export function ProjectsSectionSSR() {
                     />
                   </picture>
                   {/* Logo (desktop padrão) - ocupar 100% da área sem padding/margem; bg-card garante fundo neutro atrás do logo */}
-                  <div className="logo absolute inset-0 grid place-items-center bg-card transition-opacity duration-300">
+                  <div className="logo absolute inset-0 grid place-items-center bg-muted dark:bg-card transition-opacity duration-300">
                     {isLogoAvif ? (
                       <picture>
                         <source srcSet={`${logo1x} 1x, ${logo2x} 2x`} type="image/avif" />

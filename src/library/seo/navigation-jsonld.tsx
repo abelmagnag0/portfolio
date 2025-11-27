@@ -5,11 +5,23 @@ import { SITE_URL } from "./site";
  * Marcações de navegação do site (SiteNavigationElement).
  */
 export function NavigationJsonLd() {
+  const navItems = [
+    { name: "Início", alternateName: "Home", hash: "#home" },
+    { name: "Sobre", alternateName: "About", hash: "#about" },
+    { name: "Cases", alternateName: "Projects", hash: "#projects" },
+    { name: "Contato", alternateName: "Contact", hash: "#contact" },
+  ] as const;
+
   const data = {
     "@context": "https://schema.org",
-    "@type": "SiteNavigationElement",
-    name: ["Home", "Projects", "Contact"],
-    url: [`${SITE_URL}/#home`, `${SITE_URL}/#projects`, `${SITE_URL}/#contact`],
+    "@type": "ItemList",
+    itemListElement: navItems.map((item, index) => ({
+      "@type": "SiteNavigationElement",
+      position: index + 1,
+      name: item.name,
+      alternateName: item.alternateName,
+      url: `${SITE_URL}/${item.hash}`,
+    })),
   } as const;
 
   return <JsonLdScript data={data} scriptKey="site-navigation" />;

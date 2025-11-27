@@ -23,11 +23,11 @@ function ProjectCarousel({ images, alt, lang }: { images: string[]; alt: string;
   const imageWord = lang === 'pt-BR' ? 'imagem' : 'image';
 
   return (
-    <div className="relative w-full aspect-video overflow-hidden rounded-lg">
+    <div className="relative w-full aspect-video overflow-hidden rounded-lg bg-muted dark:bg-muted/20 border border-border">
       <ImageWithFallback
         src={images[index]}
         alt={`${alt} - ${imageWord} ${index + 1}`}
-        className="w-full h-full object-cover"
+        className="w-full h-full"
       />
       {total > 1 && (
         <>
@@ -89,9 +89,34 @@ export function ProjectsSection() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {paginated.map((project, index) => {
             const copy = getProjectCopy(project, lang);
+            const previewImage = project.gallery?.[0] ?? project.images?.[0] ?? project.logo ?? '';
+            const modalImages = project.gallery && project.gallery.length > 0 ? project.gallery : project.images ?? [];
+            const badgeConfig = (() => {
+              if (project.type === 'publico') {
+                return {
+                  className: 'border-transparent bg-[#244782] text-white hover:bg-[#244782]/90 focus-visible:ring-[#244782]/30',
+                  icon: <Globe className="w-3 h-3" />,
+                  label: t('projects.badge.public'),
+                } as const;
+              }
+              if (project.type === 'privado') {
+                return {
+                  className: 'border-transparent bg-[#8f1d1d] text-white hover:bg-[#8f1d1d]/90 focus-visible:ring-[#8f1d1d]/30',
+                  icon: <Lock className="w-3 h-3" />,
+                  label: t('projects.badge.private'),
+                } as const;
+              }
+              return {
+                className: 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-primary/30',
+                icon: <Globe className="w-3 h-3" />,
+                label: t('projects.badge.authoral'),
+              } as const;
+            })();
+
             return (
               <motion.div
                 key={project.key}
+                id={`project-${project.key}`}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -99,22 +124,17 @@ export function ProjectsSection() {
               >
                 <Dialog>
                   <DialogTrigger asChild>
-                    <div className="group cursor-pointer bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all h-full flex flex-col">
-                      <div className="relative aspect-video overflow-hidden">
+                    <div className="group cursor-pointer border border-border rounded-2xl overflow-hidden transition-all h-full flex flex-col bg-muted dark:bg-card shadow-sm hover:shadow-md hover:border-primary/50 dark:shadow-none dark:hover:shadow-none">
+                      <div className="relative aspect-square overflow-hidden bg-muted dark:bg-muted/20 border-b border-border">
                         <ImageWithFallback
-                          src={project.images?.[0]}
+                          src={previewImage}
                           alt={copy.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="w-full h-full transition-transform duration-500 group-hover:scale-105"
                         />
                         <div className="absolute top-4 right-4">
-                          <Badge variant={project.type === 'autoral' ? 'default' : 'secondary'}>
-                            {project.type === 'privado' ? (
-                              <><Lock className="w-3 h-3 mr-1" /> {t('projects.badge.private')}</>
-                            ) : project.type === 'autoral' ? (
-                              <><Globe className="w-3 h-3 mr-1" /> {t('projects.badge.authoral')}</>
-                            ) : (
-                              <><Globe className="w-3 h-3 mr-1" /> {t('projects.badge.public')}</>
-                            )}
+                          <Badge variant="outline" className={badgeConfig.className}>
+                            {badgeConfig.icon}
+                            {badgeConfig.label}
                           </Badge>
                         </div>
                       </div>
@@ -151,7 +171,7 @@ export function ProjectsSection() {
                     </DialogHeader>
 
                     <div className="space-y-4">
-                      <ProjectCarousel images={project.images || []} alt={copy.title} lang={lang} />
+                      <ProjectCarousel images={modalImages} alt={copy.title} lang={lang} />
 
                       <p className="text-muted-foreground" suppressHydrationWarning>
                         {copy.longDescription}

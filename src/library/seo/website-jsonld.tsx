@@ -10,7 +10,7 @@ export function WebsiteJsonLd() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: SITE_NAME,
-    alternateName: `${SITE_NAME} · Portfólio`,
+    alternateName: `${SITE_NAME} · Tech Lead & Engenheiro Full Stack & Mobile`,
     url: `${SITE_URL}/`,
     inLanguage: "pt-BR",
     description: SITE_DESCRIPTION,

@@ -17,9 +17,9 @@ function ProjectCarousel({ images, alt, lang }: { images: string[]; alt: string;
   const openLabel = lang === 'pt-BR' ? 'Abrir imagem em nova guia' : 'Open image in new tab';
   const imageWord = lang === 'pt-BR' ? 'imagem' : 'image';
   return (
-    <div className="relative w-full aspect-video overflow-hidden rounded-lg">
+    <div className="relative w-full aspect-video overflow-hidden rounded-lg bg-muted dark:bg-muted/20 border border-border">
       <a href={images[index]} target="_blank" rel="noopener noreferrer" title={openLabel}>
-        <ImageWithFallback src={images[index]} alt={`${alt} - ${imageWord} ${index + 1}`} className="w-full h-full object-cover" />
+        <ImageWithFallback src={images[index]} alt={`${alt} - ${imageWord} ${index + 1}`} className="w-full h-full" />
       </a>
       {total > 1 && (
         <>
@@ -57,7 +57,7 @@ export function ProjectModal({ project, open, onOpenChangeAction }: { project: P
       {!isControlled && (
         <DialogTrigger asChild>
           <button className="mt-2 text-sm text-primary hover:underline" type="button">
-            {lang === 'pt-BR' ? 'Ver detalhes' : 'View details'}
+            {lang === 'pt-BR' ? 'Ver case completo' : 'View full case'}
           </button>
         </DialogTrigger>
       )}

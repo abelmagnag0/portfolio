@@ -55,7 +55,19 @@ export default function OGImage() {
               textShadow: "0 4px 16px rgba(0,0,0,0.35)",
             }}
           >
-            Desenvolvedor Full Stack — React, Next.js, Node.js, TypeScript, AWS
+            Tech Lead & Engenheiro Full Stack
+          </div>
+          <div
+            style={{
+              fontSize: 30,
+              opacity: 0.9,
+              marginBottom: 36,
+              maxWidth: 820,
+              lineHeight: 1.3,
+              textShadow: "0 4px 16px rgba(0,0,0,0.35)",
+            }}
+          >
+            Produtos digitais que conectam objetivos de negocio, UX e engenharia escalavel
           </div>
           <div
             style={{
