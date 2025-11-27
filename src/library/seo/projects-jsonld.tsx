@@ -11,7 +11,11 @@ type Props = {
  * Usa URLs estáveis para cada item (âncoras da seção de projetos).
  */
 export function ProjectsJsonLd({ projects }: Props) {
-  const items = projects.map((p, idx) => ({
+  const items = projects.map((p, idx) => {
+    const imagePath = p.gallery?.[0] ?? p.images?.[0] ?? null;
+    const imageEntry = imagePath ? { image: new URL(imagePath, SITE_URL).toString() } : {};
+
+    return {
     "@type": "ListItem",
     position: idx + 1,
     url: `${SITE_URL}/#project-${p.key}`,
@@ -19,11 +23,10 @@ export function ProjectsJsonLd({ projects }: Props) {
       "@type": "CreativeWork",
       name: p.title,
       description: p.description,
-      ...(p.gallery?.[0] ?? p.images?.[0]
-        ? { image: new URL(p.gallery?.[0] ?? p.images?.[0]!, SITE_URL).toString() }
-        : {}),
-    },
-  }));
+        ...imageEntry,
+      },
+    } as const;
+  });
 
   const data = {
     "@context": "https://schema.org",

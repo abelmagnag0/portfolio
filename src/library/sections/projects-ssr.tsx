@@ -1,4 +1,5 @@
 "use client";
+import Image from 'next/image';
 import { Badge } from '@/library/components/badge';
 import { Globe, Lock } from '@/library/icons';
 import { dictionary } from '@/library/utils/dictionary';
@@ -55,18 +56,16 @@ export function ProjectsSectionSSR() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {cards.map((project) => {
             const copy = getProjectCopy(project, lang);
-            const logo1x = project.logo || project.images?.[0] || '';
-            const isLogoAvif = logo1x.endsWith('.avif');
-            const logo2x = isLogoAvif ? logo1x.replace('.avif', '@2x.avif') : logo1x;
-            const card1x = project.card || project.gallery?.[0] || project.images?.[0] || logo1x;
-            const isCardAvif = !!project.card && card1x.endsWith('.avif');
-            const card2x = isCardAvif ? card1x.replace('.avif', '@2x.avif') : '';
+            const fallbackAsset = '/hero.webp';
+            const logoSrc = project.logo || project.images?.[0] || fallbackAsset;
+            const cardSrc = project.card || project.gallery?.[0] || project.images?.[0] || logoSrc;
             const overlayPrompt = lang === 'pt-BR' ? 'Ver case completo' : 'View full case';
             const modalLabel = lang === 'pt-BR'
               ? `Abrir case completo de ${copy.title}`
               : `Open full case for ${copy.title}`;
             const previewAlt = lang === 'pt-BR' ? `Prévia do projeto ${copy.title}` : `Project preview for ${copy.title}`;
             const logoAlt = lang === 'pt-BR' ? `Logo do projeto ${copy.title}` : `Project logo for ${copy.title}`;
+            const mediaSizes = '(min-width: 1024px) 250px, (min-width: 640px) 40vw, 100vw';
             return (
               <article
                 key={project.key}
@@ -78,41 +77,24 @@ export function ProjectsSectionSSR() {
 
                 {/* Área de mídia com dimensão fixa para todas resoluções (logo sempre contida) */}
                 <div className="relative overflow-hidden project-card aspect-square w-full bg-muted dark:bg-muted/20 border-b border-border">
-                  {/* Preview (hover/touch) */}
-                  <picture className="absolute inset-0">
-                    {isCardAvif && card2x && (
-                      <source srcSet={`${card1x} 1x, ${card2x} 2x`} type="image/avif" />
-                    )}
-                    <img
-                      src={card1x}
-                      alt={previewAlt}
-                      loading="lazy"
-                      decoding="async"
-                      className="preview absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
-                    />
-                  </picture>
+                  <Image
+                    src={cardSrc}
+                    alt={previewAlt}
+                    fill
+                    className="preview absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
+                    sizes={mediaSizes}
+                    priority={false}
+                  />
                   {/* Logo (desktop padrão) - ocupar 100% da área sem padding/margem; bg-card garante fundo neutro atrás do logo */}
                   <div className="logo absolute inset-0 grid place-items-center bg-muted dark:bg-card transition-opacity duration-300">
-                    {isLogoAvif ? (
-                      <picture>
-                        <source srcSet={`${logo1x} 1x, ${logo2x} 2x`} type="image/avif" />
-                        <img
-                          src={logo1x}
-                          alt={logoAlt}
-                          loading="lazy"
-                          decoding="async"
-                          className="logo-img w-full h-full object-contain drop-shadow-md"
-                        />
-                      </picture>
-                    ) : (
-                      <img
-                        src={logo1x}
-                        alt={logoAlt}
-                        loading="lazy"
-                        decoding="async"
-                        className="logo-img w-full h-full object-contain drop-shadow-md"
-                      />
-                    )}
+                    <Image
+                      src={logoSrc}
+                      alt={logoAlt}
+                      fill
+                      sizes={mediaSizes}
+                      className="logo-img w-full h-full object-contain drop-shadow-md"
+                      priority={false}
+                    />
                   </div>
 
                   <div className="absolute top-4 right-4">
