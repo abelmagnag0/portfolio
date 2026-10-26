@@ -1,74 +1,137 @@
-"use client";
-import { Github, Linkedin, Mail } from '@/library/icons';
+import { Container, SectionHead, Rule } from '@/library/components/layout';
+import { TrackedLink } from '@/library/components/tracked-link';
+import { Github, Linkedin, Mail, Download, ArrowRight } from '@/library/icons';
+import type { Lang } from '@/library/utils/dictionary';
 import { dictionary } from '@/library/utils/dictionary';
-import { useSettings } from '@/library/utils/settings-provider';
-import React from 'react';
+import { ContactForm } from './contact-form';
 
-type ContactLink = {
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  label: string;
-  value: string;
-  href: string;
-  external?: boolean;
-};
+/**
+ * Contato.
+ *
+ * Ordem pensada para conversão, não para simetria: o formulário vem primeiro e
+ * ocupa a coluna larga; os canais diretos ficam ao lado de quem já decidiu e
+ * não quer preencher campo nenhum. O retrato reaparece aqui de propósito — é
+ * onde a pessoa decide falar com alguém, e alguém é mais fácil de contatar do
+ * que um formulário.
+ */
+export function ContactSection({ lang }: { lang: Lang }) {
+  const dict = dictionary[lang];
+  const copy = dict.contact;
 
-const contactLinks: ContactLink[] = [
-  {
-    icon: Github,
-    label: 'GitHub',
-    value: 'abelmagnag0',
-    href: 'https://github.com/abelmagnag0',
-    external: true,
-  },
-  {
-    icon: Linkedin,
-    label: 'LinkedIn',
-    value: '/in/abel-magnago1',
-    href: 'https://linkedin.com/in/abel-magnago1',
-    external: true,
-  },
-  {
-    icon: Mail,
-    label: 'Email',
-    value: 'abel.magnago@gmail.com',
-    href: 'mailto:abel.magnago@gmail.com',
-  },
-];
+  const channels = [
+    {
+      icon: Mail,
+      label: 'E-mail',
+      value: 'abel.magnago@gmail.com',
+      href: 'mailto:abel.magnago@gmail.com',
+    },
+    {
+      icon: Linkedin,
+      label: 'LinkedIn',
+      value: '/in/abel-magnago1',
+      href: 'https://www.linkedin.com/in/abel-magnago1',
+    },
+    {
+      icon: Github,
+      label: 'GitHub',
+      value: 'abelmagnag0',
+      href: 'https://github.com/abelmagnag0',
+    },
+  ];
 
-export function ContactSection() {
-  const { lang } = useSettings();
-  const m = dictionary[lang];
+  const cvHref = lang === 'pt-BR' ? '/cv/pt-br.pdf' : '/cv/en.pdf';
+
   return (
-    <section id="contact" className="py-24 bg-muted/30 cv-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl mb-4">{m.contact.title}</h2>
-          <div className="w-20 h-1 bg-primary mx-auto rounded-full mb-6" />
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            {m.contact.subtitle}
-          </p>
-        </div>
+    <section id="contact" className="cv-auto py-20 lg:py-28">
+      <Container>
+        <SectionHead
+          title={copy.title}
+          subtitle={copy.subtitle}
+          anchor="contact"
+        />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {contactLinks.map((link, index) => (
-            <a
-              key={index}
-              href={link.href}
-              target={link.external ? '_blank' : undefined}
-              rel={link.external ? 'noopener noreferrer' : undefined}
-              className="group bg-card border border-border rounded-2xl p-6 hover:border-primary/50 transition-all flex items-center gap-4"
-            >
-              <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                <link.icon className="w-6 h-6 text-primary" />
+        <div className="mt-14 grid gap-12 lg:mt-16 lg:grid-cols-12 lg:gap-14">
+          <div className="lg:col-span-7">
+            <ContactForm />
+          </div>
+
+          <aside className="lg:col-span-5">
+            <div className="border border-rule-strong bg-paper-raised p-3">
+              <div className="flex items-start gap-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/portrait-square.webp"
+                  width={512}
+                  height={512}
+                  alt={dict.hero.portrait_alt}
+                  loading="lazy"
+                  decoding="async"
+                  className="block size-24 shrink-0 object-cover"
+                />
+                <div className="min-w-0">
+                  <p className="font-display text-lg leading-tight text-ink-strong">Abel Magnago</p>
+                  <p className="mt-1 text-sm text-ink-soft">{dict.footer.role}</p>
+                  <p className="mt-2 font-mono text-[0.6875rem] uppercase tracking-[0.1em] text-ink-faint">
+                    {dict.footer.location}
+                  </p>
+                </div>
               </div>
-              <div className="grow">
-                <div className="text-sm text-muted-foreground">{link.label}</div>
-                <div className="group-hover:text-primary transition-colors">{link.value}</div>
-              </div>
-            </a>
-          ))}
+            </div>
+
+            <div className="mt-8">
+              <span className="text-sm font-medium text-ink">{copy.channels_label}</span>
+              <ul className="mt-4">
+                {channels.map((channel) => {
+                  const Icon = channel.icon;
+                  return (
+                    <li key={channel.label} className="border-t border-rule">
+                      <TrackedLink
+                        href={channel.href}
+                        event="social_click"
+                        eventName={channel.label}
+                        {...(channel.href.startsWith('http')
+                          ? { target: '_blank', rel: 'noreferrer noopener' }
+                          : {})}
+                        className="group flex items-center justify-between gap-4 py-3.5"
+                      >
+                        <span className="flex min-w-0 items-center gap-3">
+                          <Icon className="size-4 shrink-0 text-ink-faint" aria-hidden="true" />
+                          <span className="font-mono text-[0.6875rem] uppercase tracking-[0.12em] text-ink-faint">
+                            {channel.label}
+                          </span>
+                          <span className="truncate text-sm text-ink-soft">{channel.value}</span>
+                        </span>
+                        <ArrowRight
+                          className="size-4 shrink-0 text-ink-faint transition-transform group-hover:translate-x-0.5"
+                          aria-hidden="true"
+                        />
+                      </TrackedLink>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            <div className="mt-8 border-t border-rule pt-5">
+              <TrackedLink
+                href={cvHref}
+                download
+                event="cv_download"
+                eventName={lang === 'pt-BR' ? 'cv-pt-br' : 'cv-en'}
+                className="link-rule hover:link-rule-on inline-flex min-h-6 items-center gap-2 text-sm font-medium text-ink"
+              >
+                <Download className="size-4" aria-hidden="true" />
+                {copy.cv_label}
+              </TrackedLink>
+            </div>
+
+            <Rule className="mt-8" />
+            <p className="mt-4 font-mono text-xs leading-relaxed text-ink-faint">
+              {copy.response_note}
+            </p>
+          </aside>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

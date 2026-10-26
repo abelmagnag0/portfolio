@@ -2,6 +2,10 @@
 set -euo pipefail
 
 # Config
+# O serviço no serverless.yml se chama `portfolio`, mas a stack no ar ainda é a
+# `portfolio-site-dev`, criada em outro computador. Os dois nomes estão presos
+# de propósito: renomear a stack aqui faria o publish procurar uma stack que não
+# existe e cair no fallback de bucket vazio. Ver o comentário no serverless.yml.
 STACK_NAME=${STACK_NAME:-"portfolio-site-dev"}
 REGION=${AWS_REGION:-${AWS_DEFAULT_REGION:-"us-east-1"}}
 PROFILE=${AWS_PROFILE:-""}
@@ -30,15 +34,6 @@ if [ ! -d "out" ]; then
   echo "[publish] Pasta 'out' não encontrada após build. Verifique o output: 'export' no next.config.ts." >&2
   exit 1
 fi
-
-# Descobrir Bucket e Distribution pelos outputs do stack
-get_output() {
-  local export_name="$1"
-  aws cloudformation describe-stacks \
-    --stack-name "$STACK_NAME" \
-    --query "Stacks[0].Outputs[?ExportName==\`$export_name\`].OutputValue" \
-    --output text
-}
 
 if ! command -v aws >/dev/null 2>&1; then
   echo "[publish] AWS CLI não encontrado. Instale e configure suas credenciais." >&2

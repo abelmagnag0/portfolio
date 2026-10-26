@@ -1,0 +1,24 @@
+# Sobe o portfólio (dev server com hot reload) em container.
+#
+# Pré-requisito: dependências instaladas no host (pnpm install) — o projeto é
+# montado dentro do container, então não há reinstalação a cada `up`.
+#
+#   docker compose up
+#   → http://localhost:4321
+services:
+  web:
+    image: node:22-slim
+    container_name: portfolio-web
+    working_dir: /app
+    command: ./node_modules/.bin/next dev -H 0.0.0.0 -p 3000
+    ports:
+      - "4321:3000"
+    volumes:
+      - .:/app
+      # .next isolado do host: evita corromper o cache do dev server
+      # quando se roda `next build` no host ao mesmo tempo.
+      - ./.next-container:/app/.next
+    environment:
+      - HOME=/tmp
+    user: "${UID:-1000}:${GID:-1000}"
+    restart: unless-stopped

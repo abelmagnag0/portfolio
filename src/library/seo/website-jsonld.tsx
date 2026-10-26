@@ -1,25 +1,47 @@
 import { JsonLdScript } from "next-seo";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOCIAL } from "./site";
+import type { Lang } from "@/library/utils/dictionary";
+import {
+  ROLE,
+  ROLE_EN,
+  SITE_DESCRIPTION,
+  SITE_DESCRIPTION_EN,
+  SITE_NAME,
+  SITE_URL,
+} from "./site";
 
 /**
- * WebSite JSON-LD com Site Name e Sitelinks Search Box (via SearchAction do Google).
- * Ajuda o Google a exibir o nome do site (Abel Magnago) e pode habilitar sitelinks.
+ * WebSite + Person: diz ao Google quem mantém o site e o que ele faz.
+ * O `name` sai do mesmo `ROLE` usado no resto do site, para o posicionamento
+ * não divergir entre a página, o cartão de link e o dado estruturado.
  */
-export function WebsiteJsonLd() {
+export function WebsiteJsonLd({ lang = "pt-BR" }: { lang?: Lang }) {
+  const en = lang === "en";
+  const site = SITE_URL;
+
   const data = {
     "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: SITE_NAME,
-    alternateName: `${SITE_NAME} · Tech Lead & Engenheiro Full Stack & Mobile`,
-    url: `${SITE_URL}/`,
-    inLanguage: "pt-BR",
-    description: SITE_DESCRIPTION,
-    sameAs: [SOCIAL.github, SOCIAL.linkedin],
-    potentialAction: {
-      "@type": "SearchAction",
-      target: `https://www.google.com/search?q=site:${new URL(SITE_URL).host}+{search_term_string}`,
-      "query-input": "required name=search_term_string",
-    },
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": `${site}/#website`,
+        url: site,
+        name: SITE_NAME,
+        description: en ? SITE_DESCRIPTION_EN : SITE_DESCRIPTION,
+        inLanguage: en ? "en" : "pt-BR",
+        publisher: { "@id": `${site}/#person` },
+      },
+      {
+        "@type": "Person",
+        "@id": `${site}/#person`,
+        name: SITE_NAME,
+        url: site,
+        jobTitle: en ? ROLE_EN : ROLE,
+        sameAs: [
+          "https://github.com/abelmagnag0",
+          "https://www.linkedin.com/in/abel-magnago1",
+        ],
+      },
+    ],
   } as const;
 
   return <JsonLdScript data={data} scriptKey="website" />;

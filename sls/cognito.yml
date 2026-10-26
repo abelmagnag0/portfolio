@@ -1,0 +1,161 @@
+# Login do painel admin via Cognito, com segundo fator obrigatório.
+#
+# Por que Cognito e não uma senha no SSM: com SSM o Serverless resolve o
+# parâmetro no momento do deploy e injeta o valor como variável de ambiente da
+# Lambda, então a senha e o segredo do HMAC ficam legíveis no template do
+# CloudFormation e em `aws lambda get-function-configuration`. Aqui não existe
+# segredo de aplicação: quem prova identidade é o Cognito, e o API Gateway
+# valida o JWT antes de a Lambda rodar. Não há senha em lugar nenhum do repo,
+# do template ou do ambiente das funções.
+#
+# O que este pool garante:
+#   - login só por e-mail e senha, com política mínima de 12 caracteres;
+#   - MFA por TOTP (app autenticador) OBRIGATÓRIO, sem opção de pular. No
+#     primeiro login o managed login mostra o QR code, pede o código de 6
+#     dígitos e só libera o painel depois que o autenticador está registrado;
+#   - ninguém se cadastra sozinho (`AllowAdminCreateUserOnly`): o único usuário
+#     é o criado por `scripts/create-admin.sh`;
+#   - bloqueio progressivo e rate limit do próprio Cognito, que a senha única
+#     comparada na Lambda não tinha.
+#
+# O client é público (sem secret) porque o site é estático: o código roda no
+# navegador. Por isso o fluxo é Authorization Code + PKCE, que é o recomendado
+# para clientes públicos e não exige guardar segredo no front.
+
+Resources:
+  AdminUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: ${self:service}-${sls:stage}-admin
+      # Essentials é o plano padrão de pools novos e o mínimo para managed
+      # login. A faixa gratuita cobre 10.000 usuários ativos por mês, então um
+      # único admin custa zero.
+      UserPoolTier: ESSENTIALS
+      # O e-mail é o identificador. `UsernameAttributes` faz o Cognito aceitar
+      # o e-mail no lugar de um username separado. `CaseSensitive: false` evita
+      # o login falhar só porque o e-mail foi digitado com outra caixa.
+      UsernameAttributes:
+        - email
+      UsernameConfiguration:
+        CaseSensitive: false
+      AutoVerifiedAttributes:
+        - email
+      # Ninguém cria conta pelo site.
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      MfaConfiguration: "ON"
+      EnabledMfas:
+        - SOFTWARE_TOKEN_MFA
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 12
+          RequireLowercase: true
+          RequireUppercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          TemporaryPasswordValidityDays: 3
+      # Trocar o e-mail exige verificar o novo endereço. É a única saída de
+      # recuperação de senha, então não pode ser trocada por engano.
+      UserAttributeUpdateSettings:
+        AttributesRequireVerificationBeforeUpdate:
+          - email
+      # Se ele esquecer a senha, o código vai para o e-mail verificado. Se
+      # perder o celular do TOTP, o caminho é `pnpm run admin:reset-mfa`
+      # (feito pelo CLI, com credencial AWS) — não existe autoatendimento para
+      # remover o segundo fator, de propósito.
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+
+  # Client público do site estático. Sem `GenerateSecret`, porque um segredo
+  # embarcado no navegador não é segredo.
+  AdminUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: ${self:service}-${sls:stage}-admin-web
+      UserPoolId: !Ref AdminUserPool
+      GenerateSecret: false
+      # Sem `client_credentials` nem senha: só o fluxo de código com PKCE.
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthScopes:
+        - openid
+        - email
+        - profile
+      # Sem esta lista o client fica sem provedor nenhum e o managed login
+      # responde "solicitação inválida" em vez de mostrar e-mail e senha.
+      SupportedIdentityProviders:
+        - COGNITO
+      # O callback é a própria página do painel. Em produção, só o domínio
+      # real. Os três localhosts cobrem o Next no host (:3000), o servidor que
+      # ele vê (:3100) e o container do docker-compose (:4321). O Cognito só
+      # aceita callback exato — não existe wildcard de porta.
+      CallbackURLs:
+        - https://${self:custom.domainName}/admin
+        - https://www.${self:custom.domainName}/admin
+        - http://localhost:3000/admin
+        - http://localhost:3100/admin
+        - http://localhost:4321/admin
+      LogoutURLs:
+        - https://${self:custom.domainName}/admin
+        - https://www.${self:custom.domainName}/admin
+        - http://localhost:3000/admin
+        - http://localhost:3100/admin
+        - http://localhost:4321/admin
+      # 8 horas de access token, igual ao que o token antigo durava. O refresh
+      # token fica em 1 dia: quem fecha o navegador volta pelo login completo
+      # (senha + TOTP), e um refresh vazado não vale por um mês.
+      AccessTokenValidity: 8
+      IdTokenValidity: 8
+      RefreshTokenValidity: 1
+      TokenValidityUnits:
+        AccessToken: hours
+        IdToken: hours
+        RefreshToken: days
+      # Erros genéricos no login: não revela se o e-mail existe no pool.
+      PreventUserExistenceErrors: ENABLED
+      EnableTokenRevocation: true
+
+  # Domínio do managed login. O prefixo precisa ser único na região, por isso
+  # leva o nome do serviço e o stage. A URL final é
+  # https://<prefix>.auth.<region>.amazoncognito.com
+  AdminUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: ${self:service}-${sls:stage}-admin
+      UserPoolId: !Ref AdminUserPool
+      # 2 = managed login (o visual novo). É ele que mostra a tela de cadastro
+      # do TOTP no primeiro login; o hosted UI clássico (1) só desafia quem já
+      # tem autenticador registrado.
+      ManagedLoginVersion: 2
+
+  # O client é criado por CloudFormation, não pelo console, e nesse caso o
+  # Cognito não cria estilo nenhum: sem este recurso o managed login responde
+  # erro em vez da tela de login. `UseCognitoProvidedValues` aplica o visual
+  # padrão da AWS, que é o suficiente para um painel privado.
+  AdminManagedLoginBranding:
+    Type: AWS::Cognito::ManagedLoginBranding
+    Properties:
+      UserPoolId: !Ref AdminUserPool
+      ClientId: !Ref AdminUserPoolClient
+      UseCognitoProvidedValues: true
+
+Outputs:
+  AdminUserPoolId:
+    Value: !Ref AdminUserPool
+    Export:
+      Name: AdminUserPoolId
+  AdminUserPoolClientId:
+    Value: !Ref AdminUserPoolClient
+    Export:
+      Name: AdminUserPoolClientId
+  # Usado pelo /api/config para montar as URLs da hosted UI.
+  AdminUserPoolDomainName:
+    Value: !Sub "${self:service}-${sls:stage}-admin.auth.${AWS::Region}.amazoncognito.com"
+    Export:
+      Name: AdminUserPoolDomainName

@@ -1,4 +1,15 @@
 #!/usr/bin/env node
+/**
+ * Substitui o <link rel="stylesheet"> por um <style> inline em cada HTML
+ * exportado, para o primeiro paint não depender de nenhuma requisição de CSS.
+ *
+ * Limite conhecido: este script mexe só nos `.html`. O payload RSC (`out/*.txt`)
+ * continua descrevendo o <link> original, então o React o recria depois da
+ * hidratação e o navegador baixa o CSS uma vez, já com a página pintada. Isso é
+ * aceito de propósito: o custo é uma requisição não bloqueante e o benefício é
+ * não ter CSS no caminho crítico. Não tente "consertar" editando o `.txt`: é
+ * stream serializado do React e mexer nele quebra a hidratação.
+ */
 import fs from 'fs';
 import path from 'path';
 

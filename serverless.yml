@@ -1,23 +1,154 @@
 org: abelzn
-service: portfolio-site
+# O nome do serviço é o rótulo deste repositório: o projeto mora em
+# ~/github/portfolio. Ele NÃO pode arrastar junto o nome da stack, porque a
+# stack que está no ar foi criada em outro computador como `portfolio-site-dev`
+# e recriá-la significaria uma distribuição CloudFront nova, com outro domínio
+# interno, enquanto os registros de DNS (Route 53) continuam apontando para a
+# antiga. Por isso `stackName` e `bucketName` ficam fixos mais abaixo, nos
+# valores que a AWS já tem. Quem quiser migrar de verdade precisa remover os
+# registros de DNS antes, senão o CloudFormation falha em `ApexRecord`.
+service: portfolio
 
 provider:
   name: aws
+  stackName: portfolio-site-dev
   region: us-east-1
   runtime: nodejs22.x
   memorySize: 128
+  httpApi:
+    cors:
+      allowedOrigins:
+        - ${self:custom.siteUrl}
+        - https://www.${self:custom.domainName}
+        - http://localhost:3000
+        - http://localhost:3100
+        - http://localhost:4321
+      allowedMethods:
+        - GET
+        - POST
+        - PATCH
+        - OPTIONS
+      allowedHeaders:
+        - content-type
+        - authorization
+      maxAge: 3600
+    # O API Gateway valida o JWT do Cognito antes de chamar a Lambda. Quem
+    # manda um token vencido, assinado por outro pool ou com audience errada
+    # recebe 401 sem que o handler rode. Nenhuma função guarda senha ou
+    # segredo de sessão: a identidade inteira vive no Cognito.
+    authorizers:
+      adminJwt:
+        type: jwt
+        identitySource: $request.header.Authorization
+        issuerUrl: !GetAtt AdminUserPool.ProviderURL
+        audience:
+          - !Ref AdminUserPoolClient
+  environment:
+    EVENTS_TABLE: !Ref PortfolioEventsTable
+    LEADS_TABLE: !Ref PortfolioLeadsTable
+    LEAD_RECIPIENT: ${self:custom.leadRecipient}
+    SES_SENDER: ${self:custom.sesSender}
+    # Região do SES: identidades verificadas + produção habilitada em sa-east-1.
+    SES_REGION: ${self:custom.sesRegion}
+    # Público, não secreto: o /api/config devolve estes dois para o navegador
+    # montar a URL da hosted UI. Não existe segredo de aplicação aqui.
+    COGNITO_HOST: !Sub '${self:service}-${sls:stage}-admin.auth.${AWS::Region}.amazoncognito.com'
+    COGNITO_CLIENT_ID: !Ref AdminUserPoolClient
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:Query
+            - dynamodb:UpdateItem
+          Resource:
+            - !GetAtt PortfolioEventsTable.Arn
+            - !Sub '${PortfolioEventsTable.Arn}/index/*'
+            - !GetAtt PortfolioLeadsTable.Arn
+            - !Sub '${PortfolioLeadsTable.Arn}/index/*'
+        - Effect: Allow
+          Action:
+            - ses:SendEmail
+          Resource: '*'
 
 custom:
   domainName: abel.dev.br
-  includeWWW: true
-  bucketName: ${self:service}-${sls:stage}-${aws:accountId}
+  # Fixo no nome que o bucket já tem (o padrão ${self:service}-... passaria a
+  # apontar para um bucket novo e vazio, e a CloudFront serviria 403).
+  bucketName: portfolio-site-dev-${aws:accountId}
+  siteUrl: https://abel.dev.br
+  # Destino das notificações de novos leads e remetente verificado no SES.
+  leadRecipient: abel.magnago@gmail.com
+  sesSender: no-reply@abel.dev.br
+  # SES de sa-east-1: abel.dev.br e o destinatário já verificados, sem sandbox.
+  sesRegion: sa-east-1
+
+# Empacota apenas as Lambdas já bundladas (mantém o zip pequeno e o deploy rápido).
+package:
+  patterns:
+    - '!**'
+    - 'dist-api/**'
+
+functions:
+  track:
+    handler: dist-api/track.handler
+    description: Registra eventos de analytics do portfolio.
+    events:
+      - httpApi:
+          path: /api/track
+          method: POST
+
+  leads:
+    handler: dist-api/leads.handler
+    description: Recebe o formulário de contato e notifica por e-mail.
+    events:
+      - httpApi:
+          path: /api/leads
+          method: POST
+
+  # Público de propósito: só devolve o host e o client id do Cognito, que o
+  # navegador precisa para montar a URL de login. Não há segredo aqui.
+  adminConfig:
+    handler: dist-api/admin-config.handler
+    description: Publica a configuração pública do Cognito para o painel.
+    events:
+      - httpApi:
+          path: /api/config
+          method: GET
+
+  # As duas rotas abaixo exigem um access token válido do Cognito. O authorizer
+  # roda no API Gateway, então a Lambda nem é chamada sem token.
+  adminStats:
+    handler: dist-api/admin-stats.handler
+    description: Agrega métricas de analytics para o painel admin.
+    events:
+      - httpApi:
+          path: /api/admin/stats
+          method: GET
+          authorizer: adminJwt
+
+  adminLeads:
+    handler: dist-api/admin-leads.handler
+    description: Lista e atualiza o status dos leads no painel admin.
+    events:
+      - httpApi:
+          path: /api/admin/leads
+          method: GET
+          authorizer: adminJwt
+      - httpApi:
+          path: /api/admin/leads
+          method: PATCH
+          authorizer: adminJwt
 
 params:
   default:
     HostedZoneId: Z00310213QJDJFLRVJAAM
 
 resources:
+  - ${file(./sls/cognito.yml)}
   - ${file(./sls/acm.yml)}
   - ${file(./sls/s3.yml)}
+  - ${file(./sls/dynamodb.yml)}
   - ${file(./sls/cloudfront.yml)}
   - ${file(./sls/route53.yml)}

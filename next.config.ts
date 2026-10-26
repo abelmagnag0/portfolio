@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
     // Desativa otimização server-side para compatibilidade com export estático
     unoptimized: true,
   },
+  experimental: {
+    // Necessário porque o app tem múltiplos root layouts (route groups (pt)/(en)):
+    // sem um layout único, o 404 global precisa renderizar seu próprio <html>.
+    globalNotFound: true,
+  },
 };
 
 export default nextConfig;

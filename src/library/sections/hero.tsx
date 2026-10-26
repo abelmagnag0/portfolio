@@ -1,65 +1,74 @@
-"use client";
-/* eslint-disable @next/next/no-img-element */
-import { ArrowRight, Mail } from '@/library/icons';
+import { Container } from '@/library/components/layout';
+import type { Lang } from '@/library/utils/dictionary';
 import { dictionary } from '@/library/utils/dictionary';
-import { useSettings } from '@/library/utils/settings-provider';
+import { ArrowRight } from '@/library/icons';
 
-export function HeroSection() {
-  const { lang } = useSettings();
-  const hero = dictionary[lang].hero;
+/**
+ * A seção de perfil.
+ *
+ * A capa (`cover.tsx`) é a folha de rosto; daqui para baixo, o site é o
+ * documento que sempre foi: fio de 1px, texto e retrato emoldurado.
+ *
+ * O retrato é uma chapa emoldurada por fio de 1px, como impresso: sem foto
+ * circular, sem gradiente e sem pill. Nada anima aqui, porque a coreografia
+ * de entrada é uma só e acontece na capa.
+ */
+export function HeroSection({ lang }: { lang: Lang }) {
+  const dict = dictionary[lang];
+  const copy = dict.hero;
 
   return (
-    <section id="home" className="min-h-screen flex items-center justify-center relative overflow-hidden pt-16">
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-linear-to-br from-primary/10 via-transparent to-transparent pointer-events-none" />
-      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6">
-            <div className="inline-block px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-              <span className="text-primary">{hero.available}</span>
-            </div>
-            
-            <h1 className="text-5xl md:text-6xl lg:text-7xl">
-              Abel Magnago
-            </h1>
-            
-            <p className="text-2xl md:text-3xl text-muted-foreground">
-              {hero.role}
-            </p>
-            
-            <p className="text-lg text-muted-foreground max-w-xl">
-              {hero.description}
-            </p>
-            
-            <div className="flex flex-wrap gap-4 pt-4">
-              <a href="#projects" className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-10 rounded-md px-6">
-                {hero.cta_portfolio}
-                <ArrowRight className="w-4 h-4" />
+    <section id="profile" className="relative pt-6 pb-16 lg:pb-24">
+      <Container>
+        <div className="h-px w-full bg-rule-strong" aria-hidden="true" />
+
+        <div className="mt-12 grid gap-12 lg:mt-16 lg:grid-cols-12 lg:gap-14">
+          <div className="lg:col-span-7 lg:row-start-1">
+            <p className="max-w-[54ch] text-lg text-ink-soft">{copy.lead}</p>
+
+            <div className="mt-10 flex flex-wrap items-center gap-x-7 gap-y-4">
+              <a
+                href="#work"
+                className="inline-flex items-center gap-2.5 rounded-md bg-accent-cobalt px-5 py-3 text-sm font-medium text-accent-ink transition-colors hover:bg-accent-cobalt/88"
+              >
+                {copy.cta_work}
+                <ArrowRight className="size-4" aria-hidden="true" />
               </a>
-              <a href="#contact" className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background text-foreground hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-10 rounded-md px-6">
-                <Mail className="w-4 h-4" />
-                {hero.cta_contact}
+              <a
+                href="#contact"
+                className="link-rule hover:link-rule-on inline-flex min-h-6 items-center py-1 text-sm font-medium text-ink"
+              >
+                {copy.cta_contact}
               </a>
             </div>
+
+            <p className="mt-8 max-w-[52ch] font-mono text-xs leading-relaxed text-ink-faint">
+              {copy.note}
+            </p>
           </div>
 
-          <div className="relative">
-            <div className="relative w-full aspect-square max-w-md mx-auto">
-              <div className="absolute inset-0 bg-linear-to-br from-primary to-primary/50 rounded-full blur-2xl opacity-30" />
+          <figure className="lg:col-span-5 lg:row-start-1">
+            <div className="border border-rule-strong bg-paper-raised p-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/hero.webp"
-                alt="Abel Magnago"
-                className="relative rounded-full w-full h-full object-cover border-4 border-primary/20"
+                src="/portrait-4x5.webp"
+                srcSet="/portrait-4x5-sm.webp 320w, /portrait-4x5.webp 640w"
+                sizes="(min-width: 1024px) 32rem, 92vw"
+                width={640}
+                height={800}
+                alt={copy.portrait_alt}
                 fetchPriority="high"
                 decoding="async"
-                loading="eager"
+                className="block h-auto w-full"
               />
+              <figcaption className="mt-3 flex items-baseline justify-between gap-4 font-mono text-[0.6875rem] uppercase tracking-[0.12em] text-ink-faint">
+                <span>Abel Magnago</span>
+                <span>Rio de Janeiro</span>
+              </figcaption>
             </div>
-          </div>
+          </figure>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

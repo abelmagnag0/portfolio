@@ -1,258 +1,469 @@
+/**
+ * Camada de texto do site.
+ *
+ * PT-BR é a fonte da verdade: todo texto nasce aqui em português e o inglês
+ * espelha a mesma estrutura. O conteúdo de cada projeto mora junto do dado, em
+ * `work.data.ts`, com `translations.en` ao lado. Aqui só vive o texto de
+ * interface.
+ *
+ * Regra editorial (revisada em 2026-10-26): escrever como uma pessoa fala.
+ * Frase curta, substantivo concreto, nenhum "impacto", "entrega", "melhoria" ou
+ * "solução". Nada de numeração de página, escala de impressão ou coordenada:
+ * isso era enfeite de revista, não informação.
+ */
 export type Lang = 'pt-BR' | 'en';
 
-export type TranslationKey =
-  | 'nav.about'
-  | 'nav.projects'
-  | 'nav.articles'
-  | 'nav.contact'
-  | 'nav.download_cv'
-  | 'nav.switch_language_title'
-  | 'hero.available'
-  | 'hero.role'
-  | 'hero.description'
-  | 'hero.cta_portfolio'
-  | 'hero.cta_contact'
-  | 'about.title'
-  | 'about.p1'
-  | 'about.p2'
-  | 'about.p3'
-  | 'about.stats.years.value'
-  | 'about.stats.years.label'
-  | 'about.stats.users.value'
-  | 'about.stats.users.label'
-  | 'about.stats.stacks.value'
-  | 'about.stats.stacks.label'
-  | 'skills.title'
-  | 'skills.cat.frontend'
-  | 'skills.cat.backend'
-  | 'skills.cat.devops'
-  | 'skills.cat.database'
-  | 'skills.desc.frontend.1'
-  | 'skills.desc.frontend.2'
-  | 'skills.desc.frontend.3'
-  | 'skills.desc.backend.1'
-  | 'skills.desc.backend.2'
-  | 'skills.desc.backend.3'
-  | 'skills.desc.devops.1'
-  | 'skills.desc.devops.2'
-  | 'skills.desc.devops.3'
-  | 'skills.desc.database.1'
-  | 'skills.desc.database.2'
-  | 'skills.desc.database.3'
-  | 'projects.title'
-  | 'projects.badge.private'
-  | 'projects.badge.public'
-  | 'projects.badge.authoral'
-  | 'projects.tech_used'
-  | 'projects.impact'
-  | 'articles.title'
-  | 'articles.subtitle'
-  | 'contact.title'
-  | 'contact.subtitle'
-  | 'contact.cta_email'
-  | 'testimonials.title'
-  | 'footer.role';
+type Capability = { name: string; line: string; tools: string[] };
 
-type Messages = {
-  nav: {
-    about: string;
-    projects: string;
-    articles: string;
-    contact: string;
-    download_cv: string;
-    switch_language_title: string;
-  };
-  hero: {
-    available: string;
-    role: string;
-    description: string;
-    cta_portfolio: string;
-    cta_contact: string;
-  };
-  about: {
-    title: string;
-    p1: string;
-    p2: string;
-    p3: string;
-    stats: {
-      years: { value: string; label: string };
-      users: { value: string; label: string };
-      stacks: { value: string; label: string };
-    };
-  };
-  skills: {
-    title: string;
-    cat: { frontend: string; backend: string; devops: string; database: string };
-    desc: {
-      frontend: { 1: string; 2: string; 3: string };
-      backend: { 1: string; 2: string; 3: string };
-      devops: { 1: string; 2: string; 3: string };
-      database: { 1: string; 2: string; 3: string };
-    };
-  };
-  projects: {
-    title: string;
-    badge: { private: string; public: string; authoral: string };
-    tech_used: string;
-    impact: string;
-  };
-  articles: { title: string; subtitle: string };
-  contact: { title: string; subtitle: string; cta_email: string };
-  testimonials: { title: string };
-  footer: { role: string };
+type WorkCopy = {
+  title: string;
+  subtitle: string;
+  role_label: string;
+  stack_label: string;
+  outcome_label: string;
+  /** Ação do card e rótulo acessível do botão que abre o detalhe. */
+  open_label: string;
+  /** Fechar o painel (rótulo acessível — o controle visível é um "×"). */
+  close_label: string;
+  /** Rótulo das telas dentro do painel. */
+  gallery_label: string;
+  /** Legenda de cada tela no carrossel: "<n> de <total>". */
+  gallery_counter: string;
+  /** Rótulos acessíveis das setas do carrossel. */
+  gallery_prev: string;
+  gallery_next: string;
 };
 
-export const dictionary: Record<Lang, Messages> = {
+type ExperienceCopy = {
+  title: string;
+  subtitle: string;
+};
+
+type CredentialGroup = { label: string; items: string[] };
+
+type CredentialsCopy = {
+  title: string;
+  subtitle: string;
+  groups: CredentialGroup[];
+};
+
+type ContactCopy = {
+  title: string;
+  subtitle: string;
+  response_note: string;
+  channels_label: string;
+  cv_label: string;
+  form: {
+    name: string;
+    name_ph: string;
+    email: string;
+    email_ph: string;
+    subject: string;
+    subject_ph: string;
+    message: string;
+    message_ph: string;
+    submit: string;
+    sending: string;
+    success_title: string;
+    success_body: string;
+    success_again: string;
+    error: string;
+    required: string;
+  };
+};
+
+export type NavCopy = {
+  work: string;
+  experience: string;
+  credentials: string;
+  capabilities: string;
+  contact: string;
+  download_cv: string;
+  switch_language_title: string;
+  theme_toggle: string;
+  skip_to_content: string;
+};
+
+export type HeroCopy = {
+  lead: string;
+  cta_work: string;
+  cta_contact: string;
+  note: string;
+  portrait_alt: string;
+};
+
+/**
+ * A capa — a folha de rosto.
+ *
+ * Só o cargo, o nome e uma frase. Nada de escala, coordenada ou trocadilho:
+ * a capa apresenta, não vende.
+ */
+export type CoverCopy = {
+  role: string;
+  intro: string;
+  /** Convite a descer para o resto da página. */
+  scroll: string;
+};
+
+export type CapabilitiesCopy = {
+  title: string;
+  subtitle: string;
+  groups: Capability[];
+};
+
+export type FooterCopy = {
+  role: string;
+  location: string;
+  nav_label: string;
+  channels_label: string;
+  back_to_top: string;
+};
+
+/**
+ * Camada opcional de decisões de engenharia (ver `decisions.tsx`).
+ * O conteúdo das notas mora em `decisions.data.ts`; aqui só a interface.
+ */
+export type DecisionsCopy = {
+  toggle_on_title: string;
+  toggle_off_title: string;
+  tour_why: string;
+  tour_intro: string;
+  tour_stop: string;
+  tour_keep: string;
+  tour_prev: string;
+  tour_next: string;
+  tour_done: string;
+  tour_close: string;
+  stopped_title: string;
+  stopped_body: string;
+  stopped_back: string;
+  stopped_got_it: string;
+};
+
+export type LangDictionary = {
+  nav: NavCopy;
+  cover: CoverCopy;
+  hero: HeroCopy;
+  work: WorkCopy;
+  experience: ExperienceCopy;
+  credentials: CredentialsCopy;
+  capabilities: CapabilitiesCopy;
+  contact: ContactCopy;
+  footer: FooterCopy;
+  decisions: DecisionsCopy;
+};
+
+export const dictionary: Record<Lang, LangDictionary> = {
   'pt-BR': {
     nav: {
-      about: 'Sobre',
-      projects: 'Cases',
-      articles: 'Artigos',
+      work: 'Projetos',
+      experience: 'Experiência',
+      credentials: 'Formação',
+      capabilities: 'Stack',
       contact: 'Contato',
       download_cv: 'Baixar CV',
-      switch_language_title: 'Alternar idioma',
+      switch_language_title: 'Mudar para inglês',
+      theme_toggle: 'Trocar tema',
+      skip_to_content: 'Ir para o conteúdo',
+    },
+    cover: {
+      role: 'Engenheiro de Software · Rio de Janeiro',
+      intro:
+        'Trabalho com sistemas web desde 2021. Faço o back-end, o front-end e o deploy, e hoje estou na Controladoria-Geral do Estado do Rio de Janeiro.',
+      scroll: 'Ver projetos',
     },
     hero: {
-      available: 'Tech lead em produtos digitais complexos',
-      role: 'Tech Lead & Engenheiro Full Stack',
-      description: 'Lidero squads multidisciplinares para lançar produtos digitais que conectam objetivos de negócio, UX e engenharia escalável.',
-      cta_portfolio: 'Explorar cases',
-      cta_contact: 'Agendar conversa',
+      lead: 'Comecei em 2021 como estagiário de QA na Prodígio Educação. Depois vieram três produtos de ensino, uma consultoria de jurídico e auditoria e, desde 2023, a Controladoria-Geral do Estado. No dia a dia, Node.js, TypeScript, React e AWS.',
+      cta_work: 'Ver projetos',
+      cta_contact: 'Falar comigo',
+      note: 'Rio de Janeiro · remoto',
+      portrait_alt: 'Retrato de Abel Magnago',
     },
-    about: {
-      title: 'Quem sou',
-      p1: 'Sou Abel Magnago, engenheiro full stack com mais de 4 anos construindo plataformas para governo, educação e empresas digitais. Atuei como tech lead conduzindo discovery, arquitetura e entregas ponta a ponta.',
-      p2: 'Trabalho lado a lado com produto, design e stakeholders para transformar indicadores em roadmap, definir métricas de sucesso e garantir que o software entregue valor desde o primeiro release.',
-      p3: 'Minha atuação combina código limpo, automação, observabilidade e uma forte cultura de UX acessível. Busco resultados mensuráveis, sustentáveis e alinhados à estratégia do negócio.',
-      stats: {
-        years: { value: '4+ anos', label: 'liderando entregas de produto' },
-        users: { value: '30k+', label: 'usuários atendidos' },
-        stacks: { value: '10+', label: 'produtos lançados' },
-      },
+    work: {
+      title: 'Projetos',
+      subtitle:
+        'Produto interno e regulado, quase sempre sob NDA. Cada card abre com o problema, o que eu fiz e o resultado.',
+      role_label: 'O que eu fiz',
+      stack_label: 'Stack',
+      outcome_label: 'Resultado',
+      open_label: 'Ver detalhes',
+      close_label: 'Fechar',
+      gallery_label: 'Telas',
+      gallery_counter: 'de',
+      gallery_prev: 'Tela anterior',
+      gallery_next: 'Próxima tela',
     },
-    skills: {
-      title: 'Como entrego valor',
-      cat: {
-        frontend: 'Experiência Digital',
-        backend: 'Plataformas & APIs',
-        devops: 'Cloud & Operações',
-        database: 'Dados & Integração',
-      },
-      desc: {
-        frontend: {
-          1: 'Design de interfaces guiadas por métricas e pesquisa',
-          2: 'Componentes acessíveis, tipados e escaláveis com React/Next',
-          3: 'Experimentos e otimizações para conversão e retenção',
-        },
-        backend: {
-          1: 'APIs resilientes em Node, Python e arquiteturas modulares',
-          2: 'Integrações com sistemas legados e parceiros com observabilidade',
-          3: 'Governança de segurança, compliance e revisão técnica',
-        },
-        devops: {
-          1: 'Pipelines CI/CD automatizados com testes e qualidade contínua',
-          2: 'Infra escalável em AWS, Vercel e contêineres Docker/Kubernetes',
-          3: 'Monitoramento, alertas e otimização de custos em produção',
-        },
-        database: {
-          1: 'Modelagem pensada para analytics em SQL e NoSQL',
-          2: 'ETLs, sincronizações e governança de dados multi-fonte',
-          3: 'Dashboards e experimentos guiados por dados',
-        },
-      },
+    experience: {
+      title: 'Experiência',
+      subtitle: 'Datas que se repetem são contratos simultâneos.',
     },
-    projects: {
-      title: 'Clientes & Cases',
-      badge: { private: 'Empresas', public: 'Governo', authoral: 'Autoral' },
-      tech_used: 'Stack principal:',
-      impact: 'Resultados',
+    credentials: {
+      title: 'Formação',
+      subtitle: 'Cursos, certificados e idiomas.',
+      groups: [
+        {
+          label: 'Certificados',
+          items: [
+            'Certificado em IA e Transformação Digital no Governo, Saïd Business School, Universidade de Oxford (2026)',
+            '7 badges de conhecimento AWS: Serverless, Compute, Networking Core, Object Storage, Data Migration, Cloud Essentials e AI-Driven Development Lifecycle (2026)',
+            'AWS Essentials, JStack (2025)',
+          ],
+        },
+        {
+          label: 'Formação acadêmica',
+          items: [
+            'Tecnólogo (CST) em Análise e Desenvolvimento de Sistemas, Universidade Unigranrio | Afya (2021–2023)',
+          ],
+        },
+        {
+          label: 'Idiomas',
+          items: ['Português (nativo)', 'Inglês (profissional)'],
+        },
+      ],
     },
-    articles: {
-      title: 'Artigos e ideias',
-      subtitle: 'Insights práticos sobre produto, engenharia e operações digitais',
+    capabilities: {
+      title: 'Stack',
+      subtitle: 'O que eu uso no dia a dia, separado por área.',
+      groups: [
+        {
+          name: 'Interface',
+          line: 'React, Next.js e TypeScript no front-end. Tela acessível e que funciona em conexão ruim.',
+          tools: ['React', 'Next.js', 'TypeScript', 'Tailwind CSS', 'Radix UI', 'Styled-components', 'Storybook', 'Vite'],
+        },
+        {
+          name: 'IA',
+          line: 'Uso IA todos os dias, em cima de código que eu escrevo e reviso. Também escrevi meu próprio agente de código.',
+          tools: ['LLMs', 'MCP', 'Agentes de código', 'Node.js', 'TypeScript'],
+        },
+        {
+          name: 'Back-end',
+          line: 'API, autenticação e integração com sistemas que já existem.',
+          tools: ['Node.js', 'Express', 'REST', 'OpenAPI/Swagger', 'WebSockets', 'SOAP', 'JWT', 'OAuth', 'LDAP/SSO', 'Zod', 'Joi', 'PHP', 'Python'],
+        },
+        {
+          name: 'Dados',
+          line: 'Modelagem pensada em quem vai ler o dado depois.',
+          tools: ['PostgreSQL', 'MySQL', 'MongoDB', 'DynamoDB', 'Modelagem de dados'],
+        },
+        {
+          name: 'Cloud',
+          line: 'Deploy na AWS com Docker e pipeline. Log desde o primeiro release.',
+          tools: ['AWS (Lambda, S3, CloudFront, Route 53, Cognito, SQS, CloudFormation)', 'Serverless Framework', 'Docker', 'GitHub Actions', 'CI/CD'],
+        },
+        {
+          name: 'Qualidade',
+          line: 'Teste contra banco de verdade, revisão de código e combinado escrito.',
+          tools: ['Jest', 'Supertest', 'Testes de integração', 'ESLint', 'Prettier', 'Code review', 'Pair programming', 'Scrum'],
+        },
+      ],
     },
     contact: {
-      title: 'Vamos criar algo juntos?',
-      subtitle: 'Conte sobre o desafio, metas e prazo: respondo rapidamente com próximos passos claros.',
-      cta_email: 'Enviar e-mail',
+      title: 'Contato',
+      subtitle: 'Me conta o que você precisa e onde está travando.',
+      response_note: 'Respondo em até um dia útil.',
+      channels_label: 'Direto',
+      cv_label: 'Currículo completo',
+      form: {
+        name: 'Nome',
+        name_ph: 'Como devo te chamar',
+        email: 'E-mail',
+        email_ph: 'voce@empresa.com',
+        subject: 'Assunto',
+        subject_ph: 'Projeto, dúvida ou só um oi',
+        message: 'Mensagem',
+        message_ph: 'Contexto, prazo, o que for útil.',
+        submit: 'Enviar mensagem',
+        sending: 'Enviando…',
+        success_title: 'Recebido.',
+        success_body: 'Sua mensagem chegou. Respondo no e-mail que você deixou, em até um dia útil.',
+        success_again: 'Enviar outra mensagem',
+        error: 'Não deu para enviar agora. Tenta de novo ou me chama em um dos canais ao lado.',
+        required: 'Preciso de nome, um e-mail válido e uma mensagem com pelo menos 10 caracteres.',
+      },
     },
-    testimonials: { title: 'Depoimentos' },
-    footer: { role: 'Tech Lead & Engenheiro Full Stack' },
+    footer: {
+      role: 'Engenheiro de Software',
+      location: 'Duque de Caxias, Rio de Janeiro',
+      nav_label: 'Navegar',
+      channels_label: 'Links',
+      back_to_top: 'Voltar ao topo',
+    },
+    decisions: {
+      toggle_on_title: 'Esconder as notas',
+      toggle_off_title: 'Mostrar as notas',
+      tour_why: 'Por que estou vendo isso?',
+      tour_intro:
+        'Cada seção tem uma decisão por trás. Estas notas contam o que eu escolhi e por quê. Aparecem uma vez. Quer parar de ver?',
+      tour_stop: 'Parar de ver',
+      tour_keep: 'Deixo ligado',
+      tour_prev: 'Anterior',
+      tour_next: 'Próxima',
+      tour_done: 'Concluir',
+      tour_close: 'Fechar as notas',
+      stopped_title: 'Notas desligadas',
+      stopped_body:
+        'Dá para trazer de volta pelo ícone de olho, no topo da página, ao lado do tema.',
+      stopped_back: 'Trazer de volta',
+      stopped_got_it: 'Entendi',
+    },
   },
+
   en: {
     nav: {
-      about: 'About',
-      projects: 'Cases',
-      articles: 'Articles',
+      work: 'Projects',
+      experience: 'Experience',
+      credentials: 'Education',
+      capabilities: 'Stack',
       contact: 'Contact',
       download_cv: 'Download CV',
-      switch_language_title: 'Switch language',
+      switch_language_title: 'Switch to Portuguese',
+      theme_toggle: 'Toggle theme',
+      skip_to_content: 'Skip to content',
+    },
+    cover: {
+      role: 'Software Engineer · Rio de Janeiro',
+      intro:
+        "I've been building web systems since 2021. I do the back end, the front end and the deploy, and I'm currently at the Rio de Janeiro State Comptroller's Office.",
+      scroll: 'See projects',
     },
     hero: {
-      available: 'Tech lead on complex digital products',
-      role: 'Tech Lead & Full Stack Engineer',
-      description: 'I lead cross-functional teams to ship digital products that align business goals, UX, and scalable engineering.',
-      cta_portfolio: 'Explore cases',
-      cta_contact: 'Schedule a call',
+      lead: "I started in 2021 as a QA intern at Prodígio Educação. Then came three education products, a legal and audit consultancy and, since 2023, the State Comptroller's Office. Day to day it's Node.js, TypeScript, React and AWS.",
+      cta_work: 'See projects',
+      cta_contact: 'Get in touch',
+      note: 'Rio de Janeiro · remote',
+      portrait_alt: 'Portrait of Abel Magnago',
     },
-    about: {
-      title: 'About me',
-      p1: "I'm Abel Magnago, a full stack engineer with 4+ years building platforms for education, government, and digital-first companies. I operate as a tech lead guiding discovery, architecture, and end-to-end delivery.",
-      p2: 'I partner with product, design, and stakeholders to translate KPIs into roadmaps, define success metrics, and ensure every release delivers measurable value.',
-      p3: 'My toolkit blends clean code, automation, observability, and an inclusive UX mindset. I focus on sustainable, data-backed results that stay aligned with business strategy.',
-      stats: {
-        years: { value: '4+ years', label: 'leading product deliveries' },
-        users: { value: '30k+', label: 'users served' },
-        stacks: { value: '10+', label: 'products shipped' },
-      },
+    work: {
+      title: 'Projects',
+      subtitle:
+        'Internal, regulated product, almost always under NDA. Each card opens with the problem, what I did and the result.',
+      role_label: 'What I did',
+      stack_label: 'Stack',
+      outcome_label: 'Result',
+      open_label: 'See details',
+      close_label: 'Close',
+      gallery_label: 'Screens',
+      gallery_counter: 'of',
+      gallery_prev: 'Previous screen',
+      gallery_next: 'Next screen',
     },
-    skills: {
-      title: 'How I deliver impact',
-      cat: {
-        frontend: 'Product Experiences',
-        backend: 'Platforms & APIs',
-        devops: 'Cloud & Ops',
-        database: 'Data & Integrations',
-      },
-      desc: {
-        frontend: {
-          1: 'UX crafted from research, analytics, and experimentation',
-          2: 'Accessible, type-safe components built with React/Next',
-          3: 'Continuous optimisation for conversion and retention',
-        },
-        backend: {
-          1: 'Resilient REST/GraphQL services in Node, Python, and modular architectures',
-          2: 'Legacy and partner integrations with full observability',
-          3: 'Security, compliance, and technical reviews embedded in the process',
-        },
-        devops: {
-          1: 'CI/CD pipelines with automated quality gates and testing',
-          2: 'Scalable infrastructure on AWS, Vercel, Docker, and Kubernetes',
-          3: 'Monitoring, alerting, and cost optimisation in production',
-        },
-        database: {
-          1: 'Data models shaped for analytics across SQL and NoSQL',
-          2: 'ETL, synchronisation, and governance across multiple sources',
-          3: 'Dashboards and experiments driven by data insights',
-        },
-      },
+    experience: {
+      title: 'Experience',
+      subtitle: 'Overlapping dates are concurrent contracts.',
     },
-    projects: {
-      title: 'Clients & Cases',
-      badge: { private: 'Enterprise', public: 'Government', authoral: 'Authorial' },
-      tech_used: 'Core stack:',
-      impact: 'Results',
+    credentials: {
+      title: 'Education',
+      subtitle: 'Courses, certificates and languages.',
+      groups: [
+        {
+          label: 'Certificates',
+          items: [
+            'Certificate in AI and Digital Transformation in Government, Saïd Business School, University of Oxford (2026)',
+            '7 AWS Knowledge badges: Serverless, Compute, Networking Core, Object Storage, Data Migration, Cloud Essentials and AI-Driven Development Lifecycle (2026)',
+            'AWS Essentials, JStack (2025)',
+          ],
+        },
+        {
+          label: 'Degree',
+          items: [
+            'Associate Degree (CST) in Systems Analysis and Development, Universidade Unigranrio | Afya (2021–2023)',
+          ],
+        },
+        {
+          label: 'Languages',
+          items: ['Portuguese (native)', 'English (professional)'],
+        },
+      ],
     },
-    articles: {
-      title: 'Articles & ideas',
-      subtitle: 'Hands-on insights about product, engineering, and digital operations',
+    capabilities: {
+      title: 'Stack',
+      subtitle: 'What I use day to day, by area.',
+      groups: [
+        {
+          name: 'Interface',
+          line: 'React, Next.js and TypeScript on the front end. Accessible screens that hold up on a bad connection.',
+          tools: ['React', 'Next.js', 'TypeScript', 'Tailwind CSS', 'Radix UI', 'Styled-components', 'Storybook', 'Vite'],
+        },
+        {
+          name: 'AI',
+          line: 'I use AI every day, on code I write and review myself. I also wrote my own coding agent.',
+          tools: ['LLMs', 'MCP', 'Coding agents', 'Node.js', 'TypeScript'],
+        },
+        {
+          name: 'Backend',
+          line: 'APIs, authentication and integration with systems that already exist.',
+          tools: ['Node.js', 'Express', 'REST', 'OpenAPI/Swagger', 'WebSockets', 'SOAP', 'JWT', 'OAuth', 'LDAP/SSO', 'Zod', 'Joi', 'PHP', 'Python'],
+        },
+        {
+          name: 'Data',
+          line: 'Modelled for whoever reads the data later.',
+          tools: ['PostgreSQL', 'MySQL', 'MongoDB', 'DynamoDB', 'Data modelling'],
+        },
+        {
+          name: 'Cloud',
+          line: 'Deploys on AWS with Docker and a pipeline. Logs from the first release.',
+          tools: ['AWS (Lambda, S3, CloudFront, Route 53, Cognito, SQS, CloudFormation)', 'Serverless Framework', 'Docker', 'GitHub Actions', 'CI/CD'],
+        },
+        {
+          name: 'Quality',
+          line: 'Tests against a real database, code review, and agreements written down.',
+          tools: ['Jest', 'Supertest', 'Integration testing', 'ESLint', 'Prettier', 'Code review', 'Pair programming', 'Scrum'],
+        },
+      ],
     },
     contact: {
-      title: 'Ready to collaborate?',
-      subtitle: 'Share the challenge, goals, and timeline — I reply quickly with clear next steps.',
-      cta_email: 'Send email',
+      title: 'Contact',
+      subtitle: "Tell me what you need and where it's stuck.",
+      response_note: 'I reply within one business day.',
+      channels_label: 'Direct',
+      cv_label: 'Full résumé',
+      form: {
+        name: 'Name',
+        name_ph: 'What should I call you',
+        email: 'Email',
+        email_ph: 'you@company.com',
+        subject: 'Subject',
+        subject_ph: 'A project, a question, or just to say hi',
+        message: 'Message',
+        message_ph: 'Context, timeline, whatever is useful.',
+        submit: 'Send message',
+        sending: 'Sending…',
+        success_title: 'Got it.',
+        success_body: "Your message landed. I'll reply to the email you left, within one business day.",
+        success_again: 'Send another message',
+        error: "Couldn't send it just now. Try again or reach me on one of the channels beside this form.",
+        required: 'I need a name, a valid email, and a message of at least 10 characters.',
+      },
     },
-    testimonials: { title: 'Testimonials' },
-    footer: { role: 'Tech Lead & Full Stack Engineer' },
+    footer: {
+      role: 'Software Engineer',
+      location: 'Duque de Caxias, Rio de Janeiro',
+      nav_label: 'Navigate',
+      channels_label: 'Links',
+      back_to_top: 'Back to top',
+    },
+    decisions: {
+      toggle_on_title: 'Hide the notes',
+      toggle_off_title: 'Show the notes',
+      tour_why: 'Why am I seeing this?',
+      tour_intro:
+        'Each section has one decision behind it. These notes say what I chose and why. They show once. Want to stop seeing them?',
+      tour_stop: 'Stop seeing them',
+      tour_keep: 'Keep them on',
+      tour_prev: 'Previous',
+      tour_next: 'Next',
+      tour_done: 'Done',
+      tour_close: 'Close the notes',
+      stopped_title: 'Notes off',
+      stopped_body:
+        'You can bring them back with the eye icon at the top of the page, next to the theme toggle.',
+      stopped_back: 'Bring them back',
+      stopped_got_it: 'Got it',
+    },
   },
 };
+
+/** Atalho para o bloco de um idioma. */
+export function getDictionary(lang: Lang): LangDictionary {
+  return dictionary[lang];
+}

@@ -20,6 +20,9 @@
 # production
 /build
 
+# Lambdas bundladas (geradas por scripts/build-api.mjs)
+/dist-api
+
 # misc
 .DS_Store
 *.pem
@@ -39,3 +42,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# cache de dev do container (.next isolado)
+/.next-container
+
+# Estado local do Serverless Framework. Fica fora do versionamento de propósito:
+# estes arquivos carregam o caminho absoluto da máquina que rodou o último
+# deploy (o repo chegou a versionar `/home/abel/personal/site/...`, de um PC que
+# não existe mais) e são reescritos a cada execução do `sls`. É cache, não
+# configuração — o que define a infra é o `serverless.yml` e o `sls/`.
+/.serverless/
+
+# Origem do retrato (entrada de scripts/prepare-images.mjs, não é servida).
+# Só os derivados em public/ entram no versionamento: o PNG original tem ~1,5 MB
+# e é a foto pessoal, não um asset do site.
+/assets

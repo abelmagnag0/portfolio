@@ -15,9 +15,13 @@ const eslintConfig = [
     ignores: [
       "node_modules/**",
       ".next/**",
+      ".next-container/**",
       "out/**",
       "build/**",
+      "dist-api/**",
       "next-env.d.ts",
+      // Handlers das Lambdas (Node.js, não fazem parte do app Next)
+      "backend/**",
     ],
   },
 ];

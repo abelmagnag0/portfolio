@@ -8,8 +8,71 @@ Resources:
         SigningBehavior: always
         SigningProtocol: sigv4
 
+  # Reescreve URIs sem extensão para .html, permitindo URLs limpas como /admin e /pt.
+  # O export estático gera <rota>.html (não <rota>/index.html), então uma barra
+  # final é normalizada antes de anexar a extensão: /pt/ -> /pt.html.
+  # A raiz (/) é o inglês e vira index.html; o português mora em /pt. Não toca
+  # em assets (paths com extensão).
+  PortfolioUrlRewriteFunction:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: portfolio-url-rewrite
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Append .html to extensionless URIs (clean URLs)
+        Runtime: cloudfront-js-2.0
+      FunctionCode: |
+        function handler(event) {
+          var request = event.request;
+          var uri = request.uri;
+          if (uri === '/') {
+            request.uri = '/index.html';
+            return request;
+          }
+          // Normaliza barra final: o export gera pt.html, não pt/index.html.
+          if (uri.charAt(uri.length - 1) === '/') {
+            uri = uri.substring(0, uri.length - 1);
+          }
+          var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
+          if (lastSegment.indexOf('.') === -1) {
+            uri = uri + '.html';
+          }
+          request.uri = uri;
+          return request;
+        }
+
+  # Encaminha para a API apenas o necessário — inclusive os headers de geo do
+  # CloudFront, que a Lambda usa para saber BR vs. exterior sem capturar IP.
+  PortfolioApiOriginRequestPolicy:
+    Type: AWS::CloudFront::OriginRequestPolicy
+    Properties:
+      OriginRequestPolicyConfig:
+        Name: portfolio-api-orp
+        HeadersConfig:
+          HeaderBehavior: whitelist
+          Headers:
+            - content-type
+            - authorization
+            # O API Gateway precisa destes headers para responder ao preflight
+            # CORS. Sem eles, o painel em localhost (que chama
+            # https://abel.dev.br/api) é bloqueado pelo navegador.
+            - origin
+            - access-control-request-method
+            - access-control-request-headers
+            - access-control-request-private-network
+            - user-agent
+            - cloudfront-viewer-country
+            - cloudfront-viewer-city
+            - cloudfront-viewer-country-region-name
+        CookiesConfig:
+          CookieBehavior: none
+        QueryStringsConfig:
+          QueryStringBehavior: all
+
   PortfolioDistribution:
     Type: AWS::CloudFront::Distribution
+    DependsOn:
+      - HttpApi
     Properties:
       DistributionConfig:
         Enabled: true
@@ -20,6 +83,15 @@ Resources:
             DomainName: !GetAtt PortfolioBucket.RegionalDomainName
             S3OriginConfig: {}
             OriginAccessControlId: !GetAtt PortfolioOAC.Id
+          - Id: api-origin
+            # Endpoint regional do HTTP API (remove o scheme https://)
+            DomainName: !Select [1, !Split ['//', !GetAtt HttpApi.ApiEndpoint]]
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              HTTPSPort: 443
+              HTTPPort: 80
+              OriginSSLProtocols:
+                - TLSv1.2
         DefaultCacheBehavior:
           TargetOriginId: s3-origin
           ViewerProtocolPolicy: redirect-to-https
@@ -31,6 +103,36 @@ Resources:
             - HEAD
           Compress: true
           CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # CachingOptimized
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt PortfolioUrlRewriteFunction.FunctionARN
+        CacheBehaviors:
+          # API do site (analytics, leads e admin) — nunca cacheada.
+          - PathPattern: /api/*
+            TargetOriginId: api-origin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+              - PUT
+              - POST
+              - PATCH
+              - DELETE
+            CachedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+            Compress: true
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # CachingDisabled
+            OriginRequestPolicyId: !Ref PortfolioApiOriginRequestPolicy
+        CustomErrorResponses:
+          - ErrorCode: 404
+            ResponseCode: 404
+            ResponsePagePath: /404.html
+          - ErrorCode: 403
+            ResponseCode: 404
+            ResponsePagePath: /404.html
         Aliases:
           - ${self:custom.domainName}
           - !Sub 'www.${self:custom.domainName}'

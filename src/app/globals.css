@@ -1,78 +1,224 @@
 @import "tailwindcss";
+/* Base do tour de decisões. Fica no CSS global para o overlay já sair
+   estilizado no primeiro frame em que o driver monta. */
+@import "driver.js/dist/driver.css";
 
 @custom-variant dark (&:is(.dark *));
 
+/* ==========================================================================
+   Tokens de design
+   --------------------------------------------------------------------------
+   A paleta foi derivada do próprio retrato (fundo quente khaki → creme), não
+   de um preset. O acento é cobalto: alto contraste sobre papel, longe do azul
+   genérico de SaaS e do gradiente roxo que denuncia interface gerada.
+
+   Regra da casa: nada de raio grande, nada de pill, nada de card flutuante.
+   A separação entre blocos é feita por fios de 1px e por espaço, não por sombra.
+   ========================================================================== */
+/* O tema padrão é o escuro: cinza quase preto com tinta quente, no recorte
+   editorial que a referência estabelece. As superfícies têm degraus de 8-10
+   pontos de luminosidade — a separação vem do degrau e do fio de 1px, nunca
+   de sombra. O claro segue existindo como tema alternativo (toggle na nav). */
 :root {
-  --font-size: 16px;
-  --background: #ffffff;
-  --foreground: #1a1a1a;
-  --card: #ffffff;
-  --card-foreground: #1a1a1a;
-  --popover: #ffffff;
-  --popover-foreground: #1a1a1a;
-  --primary: #044C8C;
-  --primary-foreground: #ffffff;
-  --secondary: #f5f5f5;
-  --secondary-foreground: #1a1a1a;
-  --muted: #f5f5f5;
-  --muted-foreground: #6b7280;
-  --accent: #e5e7eb;
-  --accent-foreground: #1a1a1a;
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  --border: rgba(0, 0, 0, 0.1);
-  --input: transparent;
-  --input-background: #f3f4f6;
-  --switch-background: #d1d5db;
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
-  --ring: #044C8C;
+  color-scheme: dark;
 
-  --radius: 1rem;
-  --sidebar: #f9fafb;
-  --sidebar-foreground: #1a1a1a;
-  --sidebar-primary: #044C8C;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f3f4f6;
-  --sidebar-accent-foreground: #1a1a1a;
-  --sidebar-border: #e5e7eb;
-  --sidebar-ring: #044C8C;
+  /* --- superfícies e tinta --- */
+  /* Três degraus de superfície, e só três: #131313 papel · #1f1f1f banda
+     alternada · #2a2a2a elevada (reservada a `--popover`). A separação entre
+     blocos vem do degrau e do fio de 1px, nunca de sombra.
+     Os quatro degraus de tinta têm contraste medido logo abaixo — a rampa é
+     absoluta, não percentual sobre o papel, justamente para poder ser
+     conferida. */
+  --paper: #131313;
+  --paper-raised: #1f1f1f;
+  --paper-elevated: #2a2a2a;
+  --ink: #e2e2e2;
+  --ink-strong: #ffffff;
+  /* Rampa calibrada contra os TRÊS degraus de superfície, medidos com a
+     fórmula de contraste da WCAG 2.x sobre o fundo efetivo de cada elemento
+     (não estimados de olho):
+                     #131313   #1f1f1f   #2a2a2a
+       --ink-soft      6.57      5.83      5.07
+       --ink-faint     5.36      4.75      4.14
+     O caso real é o par das duas primeiras colunas — papel e banda. A
+     terceira (#2a2a2a, que só existe como `--popover`) fica abaixo de 4.5
+     para texto pequeno: hoje nada no site escreve sobre ela, e se um dia
+     escrever, o token é `--ink-soft`, não `--ink-faint`. */
+  --ink-soft: #9a9a94;
+  --ink-faint: #8a8a85;
+  --rule: rgba(255, 255, 255, 0.1);
+  --rule-strong: rgba(255, 255, 255, 0.18);
+
+  /* --- acento ---
+     Na referência o acento é branco: ênfase por inversão, não por cor.
+     O cobalto segue como cor de assinatura (seleção, foco, botão primário). */
+  --accent: #1b3fbf;
+  --accent-bright: #7e9bff;
+  --accent-ink: #ffffff;
+  --accent-soft: #1a2140;
+  --accent-rule: #2e3a66;
+
+  /* --- sinal ---
+     Hoje só marca o cargo atual na linha do tempo de `experience`. Não é mais
+     ponto de "disponível": o hero não sinaliza disponibilidade. */
+  --signal: #4ade96;
+
+  /* --- ponte para os primitivos de `library/components` ---
+     Os componentes shadcn-style que já existiam no projeto leem estes nomes.
+     Mantidos apontando para os tokens acima para que continuem coerentes com
+     a paleta nova em vez de carregarem um segundo sistema de cor paralelo. */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--paper-raised);
+  --card-foreground: var(--ink);
+  --popover: var(--paper-elevated);
+  --popover-foreground: var(--ink);
+  --primary: var(--accent-bright);
+  --primary-foreground: #0b1020;
+  --secondary: #2a2a2a;
+  --secondary-foreground: var(--ink);
+  --muted: #1f1f1f;
+  --muted-foreground: var(--ink-soft);
+  --accent-color-surface: #2a2a2a;
+  --accent-foreground: var(--ink);
+  --destructive: #f2635c;
+  --destructive-foreground: #1a0503;
+  --border: var(--rule);
+  --input: var(--rule);
+  --input-background: #1a1a1a;
+  --switch-background: var(--rule-strong);
+  --ring: var(--accent-bright);
+
+  /* Cantos discretos por decisão, não por descuido: 0 em superfícies
+     estruturais, 3px em elementos interativos. */
+  --radius: 0.1875rem;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+
+  /* Textura de papel. Sem mix-blend-mode de propósito: manter o custo de
+     composição previsível durante o scroll. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
 }
 
+/* Espelho obrigatório do `:root`: a variante `dark:` do Tailwind é dirigida
+   pela classe (.dark *) e o escuro é o padrão, então os utilitários dark: só
+   ligam quando a classe está presente. Se um token mudar num bloco, mude no
+   outro — a divergência aqui viraria meio-tema. */
 .dark {
-  --background: #0B0F1A;
-  --foreground: #f0f0f0;
-  --card: #121722;
-  --card-foreground: #f0f0f0;
-  --popover: #121722;
-  --popover-foreground: #f0f0f0;
-  --primary: #044C8C;
-  --primary-foreground: #ffffff;
-  --secondary: #1a202e;
-  --secondary-foreground: #f0f0f0;
-  --muted: #1a202e;
-  --muted-foreground: #9ca3af;
-  --accent: #1e293b;
-  --accent-foreground: #f0f0f0;
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
-  --border: rgba(255, 255, 255, 0.1);
-  --input: rgba(255, 255, 255, 0.05);
-  --ring: #044C8C;
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
+  color-scheme: dark;
 
-  --sidebar: #0B0F1A;
-  --sidebar-foreground: #f0f0f0;
-  --sidebar-primary: #044C8C;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1a202e;
-  --sidebar-accent-foreground: #f0f0f0;
-  --sidebar-border: rgba(255, 255, 255, 0.1);
-  --sidebar-ring: #044C8C;
+  --paper: #131313;
+  --paper-raised: #1f1f1f;
+  --paper-elevated: #2a2a2a;
+  --ink: #e2e2e2;
+  --ink-strong: #ffffff;
+  --ink-soft: #9a9a94;
+  --ink-faint: #8a8a85;
+  --rule: rgba(255, 255, 255, 0.1);
+  --rule-strong: rgba(255, 255, 255, 0.18);
+
+  --accent: #1b3fbf;
+  --accent-bright: #7e9bff;
+  --accent-ink: #ffffff;
+  --accent-soft: #1a2140;
+  --accent-rule: #2e3a66;
+
+  --signal: #4ade96;
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--paper-raised);
+  --card-foreground: var(--ink);
+  --popover: var(--paper-elevated);
+  --popover-foreground: var(--ink);
+  --primary: var(--accent-bright);
+  --primary-foreground: #0b1020;
+  --secondary: #2a2a2a;
+  --secondary-foreground: var(--ink);
+  --muted: #1f1f1f;
+  --muted-foreground: var(--ink-soft);
+  --accent-color-surface: #2a2a2a;
+  --accent-foreground: var(--ink);
+  --destructive: #f2635c;
+  --destructive-foreground: #1a0503;
+  --border: var(--rule);
+  --input: var(--rule);
+  --input-background: #1a1a1a;
+  --switch-background: var(--rule-strong);
+  --ring: var(--accent-bright);
 }
 
+/* Tema alternativo: papel quente. Só entra com a classe `light`, aplicada pelo
+   script de tema quando o visitante escolhe claro. */
+.light {
+  color-scheme: light;
+
+  --paper: #f7f5ef;
+  --paper-raised: #fffdf8;
+  --paper-elevated: #efece3;
+  --ink: #14141a;
+  --ink-strong: #0a0a0e;
+  /* Mesma tabela do escuro, medida: nos três degraus claros
+                     #f7f5ef   #fffdf8   #efece3
+       --ink-soft      6.78      7.27      6.26
+       --ink-faint     4.99      5.35      4.60
+     No claro o papel é o pior caso (é o degrau mais escuro), ao contrário do
+     escuro, onde o pior caso é a superfície mais clara. */
+  --ink-soft: #56564f;
+  --ink-faint: #6b6a62;
+  --rule: #dcd9cd;
+  --rule-strong: #c4c0b0;
+
+  --accent: #1b3fbf;
+  --accent-bright: #1b3fbf;
+  --accent-ink: #ffffff;
+  --accent-soft: #e8ecfa;
+  --accent-rule: #c3ccf0;
+
+  --signal: #0f7a4a;
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--paper-raised);
+  --card-foreground: var(--ink);
+  --popover: var(--paper-elevated);
+  --popover-foreground: var(--ink);
+  --primary: var(--accent);
+  --primary-foreground: var(--accent-ink);
+  --secondary: #edeae0;
+  --secondary-foreground: var(--ink);
+  --muted: #efece3;
+  --muted-foreground: var(--ink-soft);
+  --accent-color-surface: #edeae0;
+  --accent-foreground: var(--ink);
+  --destructive: #b3261e;
+  --destructive-foreground: #ffffff;
+  --border: var(--rule);
+  --input: var(--rule);
+  --input-background: #f1eee6;
+  --switch-background: var(--rule-strong);
+  --ring: var(--accent);
+}
+
+/* ==========================================================================
+   Exposição ao Tailwind
+   ========================================================================== */
 @theme inline {
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-ink: var(--ink);
+  --color-ink-strong: var(--ink-strong);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-accent-cobalt: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-rule: var(--accent-rule);
+  --color-signal: var(--signal);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -85,7 +231,7 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
+  --color-accent: var(--accent-color-surface);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
@@ -94,108 +240,829 @@
   --color-input-background: var(--input-background);
   --color-switch-background: var(--switch-background);
   --color-ring: var(--ring);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-sm: 2px;
+  --radius-md: var(--radius);
+  --radius-lg: 4px;
+  --radius-xl: 6px;
+
+  --font-sans: var(--font-public-sans), system-ui, sans-serif;
+  --font-body: var(--font-public-sans), system-ui, sans-serif;
+  --font-display: var(--font-newsreader), Georgia, "Times New Roman", serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", monospace;
+
+  /* Escala tipográfica fluida: tamanhos pequenos fixos (UI não deve dançar),
+     tamanhos de display fluidos entre 320px e 1440px. Sem isso a página fica
+     com "três tamanhos de fonte e tudo em 16px" — a assinatura do texto gerado. */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.45;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5;
+  --text-base: clamp(1rem, 0.96rem + 0.19vw, 1.125rem);
+  --text-base--line-height: 1.65;
+  --text-lg: clamp(1.125rem, 1.05rem + 0.36vw, 1.375rem);
+  --text-lg--line-height: 1.6;
+  --text-xl: clamp(1.375rem, 1.2rem + 0.79vw, 1.75rem);
+  --text-xl--line-height: 1.4;
+  --text-2xl: clamp(1.625rem, 1.28rem + 1.5vw, 2.25rem);
+  --text-2xl--line-height: 1.2;
+  --text-3xl: clamp(2rem, 1.4rem + 2.6vw, 3rem);
+  --text-3xl--line-height: 1.1;
+  --text-4xl: clamp(2.5rem, 1.5rem + 4.3vw, 4rem);
+  --text-4xl--line-height: 1.02;
+  --text-5xl: clamp(3rem, 1.2rem + 7.7vw, 5.5rem);
+  --text-5xl--line-height: 0.96;
+  --text-6xl: clamp(3.5rem, 0.9rem + 11.1vw, 7.5rem);
+  --text-6xl--line-height: 0.92;
 }
 
+/* ==========================================================================
+   Base
+   ========================================================================== */
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--border);
+  }
+
+  html {
+    font-size: 100%;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-feature-settings: "cv05" 1, "ss01" 1;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Textura de papel sobre tudo. pointer-events:none garante que nunca
+     intercepta clique; opacity baixíssima mantém o texto nítido. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    pointer-events: none;
+    background-image: var(--grain);
+    background-size: 140px 140px;
+    opacity: 0.035;
+  }
+
+  .dark body::after {
+    opacity: 0.05;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    color: var(--ink-strong);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  ::selection {
+    background-color: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* Fio de seção: a única "decoração" estrutural do site. */
+  section[id] {
+    scroll-margin-top: 1.5rem;
   }
 }
 
-/**
- * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
- */
-@layer base {
-  :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
-    h1 {
-      font-size: var(--text-2xl);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
+/* ==========================================================================
+   Utilitários
+   ========================================================================== */
 
-    h2 {
-      font-size: var(--text-xl);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    h3 {
-      font-size: var(--text-lg);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    h4 {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    p {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-normal);
-      line-height: 1.5;
-    }
-
-    label {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    button {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    input {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-normal);
-      line-height: 1.5;
-    }
-  }
-}
-
-html {
-  font-size: var(--font-size);
-  scroll-behavior: smooth;
-}
-
-/* Defer rendering of below-the-fold sections to reduce initial work */
-.cv-auto {
+/* Adia o trabalho de renderização das seções abaixo da dobra. */
+@utility cv-auto {
   content-visibility: auto;
-  /* Estimate intrinsic size to avoid layout shift before paint */
-  contain-intrinsic-size: 800px;
+  contain-intrinsic-size: auto 900px;
 }
 
-/* ---------- Projects: comportamento desktop/touch ---------- */
-/* Desktop/notebook com cursor: manter logo sempre visível; preview discreta ao fundo */
-@media (hover: hover) and (pointer: fine) {
-  .project-card .logo { opacity: 1; background: var(--color-muted); }
-  /* preview muito sutil ao fundo para dar cor sem escurecer */
-  .project-card .preview { opacity: 0.06; }
-  /* no hover exibimos uma overlay visual (definida no JSX) — manter preview sutil */
+/* Banda alternada: superfície um degrau acima do papel, para dar ritmo entre
+   seções sem sombra nem borda. O degrau é sutil de propósito (#131313 →
+   #1f1f1f); no claro vira o creme sobre papel.
+
+   QUEM PODE USAR: só seção que não tenha nada pintado com `bg-paper` nem
+   `bg-paper-raised` dentro dela. A faixa de cases, por exemplo, tem cards
+   `bg-paper` e a grade `bg-rule` por baixo; se ela recebesse `band`, os cards
+   sumiriam dentro dela — mesma cor, fio invisível, e o defeito não aparece em
+   revisão de código nenhuma, só no olho. Onde há painel pintado, a seção fica
+   em papel.
+
+   Hoje a faixa alterna a partir dos cases: cases(papel) · trajetória(banda) ·
+   credenciais(papel) · capacidades(banda) · contato(papel) · rodapé(banda). */
+@utility band {
+  background-color: var(--paper-raised);
 }
 
-/* Dispositivos touch: manter logo visível; preview sutil para não escurecer */
-@media (hover: none), (pointer: coarse) {
-  .project-card .logo { opacity: 1; background: var(--color-muted); }
-  .project-card .preview { opacity: 0.06; }
+/* --------------------------------------------------------------------------
+   A capa — a folha de rosto.
+
+   A primeira seção do site não é uma manchete: é uma folha de rosto, e no
+   meio dela está o autor. Cargo em mono, nome em serifa, o trocadilho com o
+   título e a apresentação, tudo centrado, sobre uma assinatura desenhada que
+   fecha a base da folha. O centro é a exceção assumida deste arquivo: as
+   seções numeradas abaixo continuam alinhadas à esquerda, porque centro é o
+   default de template. Aqui não é default — é folha de rosto, e folha de
+   rosto tem simetria.
+
+   Três decisões, nesta ordem:
+
+   1. NADA de imagem. A peça da base é um traço só — um `<path>` de treze
+      pontos — em HTML e CSS, menos de 300 bytes, chegando junto com o HTML.
+      A mesma peça como arquivo custaria uma requisição, chegaria depois do
+      texto e quebraria sem rede.
+   2. Uma cor só. Fora papel e tinta existe apenas o cobalto do traço — o
+      acento do site. O cobalto já tem dois degraus no tema (`--accent` e
+      `--accent-bright`), e o traço usa o claro: no escuro é periwinkle sobre
+      breu, no claro é cobalto sobre papel.
+   3. Desenhada, não ilustrada. O traço não tem preenchimento, gradiente nem
+      máscara — é uma linha com o mesmo peso de ponta a ponta, e é a única
+      coisa nesta página que o visitante não vai encontrar em outro lugar: o
+      monograma de quem escreveu o documento. A versão anterior era um corpo
+      celeste com três camadas de superfície, e o motivo saiu de cena por
+      isso: um arco grande subindo do rodapé é a assinatura visual de outra
+      pessoa, e identidade emprestada não é identidade.
+   -------------------------------------------------------------------------- */
+.cover {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--paper);
+}
+
+/* A folha: três faixas — marcas em cima, o cartaz no meio, marcas embaixo —
+   com a altura da primeira tela menos a barra de navegação. */
+.cover-sheet {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  /* Abaixo de `lg` a barra de navegação ocupa duas linhas (a marca, os
+     controles e, embaixo, as âncoras): 5.625rem medidos no navegador. A
+     folha desconta a barra inteira para as marcas de baixo caírem na dobra. */
+  min-height: calc(100svh - 5.625rem);
+}
+
+@media (min-width: 1024px) {
+  .cover-sheet {
+    /* O mesmo cálculo com a barra de linha única: `h-14` (3.5rem) mais a
+       régua de 1px da borda inferior, que o `h-14` não conta. Sem o pixel,
+       a folha termina 1px abaixo da dobra e a barra rola meio milímetro. */
+    min-height: calc(100svh - 3.5rem - 1px);
+  }
+}
+
+/* A base da folha: o fio e o convite a descer. Fica sobre papel opaco e acima
+   do desenho, porque a assinatura encosta no fio de baixo e nada do traço pode
+   aparecer por baixo do texto. */
+.cover-marks {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.875rem;
+  background-color: var(--paper);
+}
+.cover-marks:first-child {
+  border-bottom: 1px solid var(--rule);
+}
+.cover-marks:last-child {
+  border-top: 1px solid var(--rule);
+}
+
+/* O palco, em duas partes que não se cruzam:
+
+   - em cima, a faixa do texto, centralizada no que sobra (`place-items` sobre
+     a caixa de conteúdo, que não conta o `padding`);
+   - embaixo, uma reserva de altura para a assinatura que fecha a folha.
+
+   A reserva é a peça central desta correção. Duas versões anteriores falharam
+   por motivos opostos: com o desenho como camada absoluta de altura fixa
+   (400px), a arte subia até o trocadilho e cortava a frase em duas; com o
+   desenho dentro da grade, o SVG (que tem largura intrínseca enorme) esticava
+   a coluna de `1fr`, estourava a folha no celular e o texto virava um
+   retângulo mais largo que a tela. Reservando a altura no `padding`, o texto
+   nunca depende do desenho e o desenho nunca empurra o texto.
+
+   A reserva é uma fração da dobra (`svh`), não um valor fixo: numa tela baixa
+   e larga, 400px de desenho comem a folha inteira — foi o que aconteceu no
+   primeiro teste, com a folha terminando a 25px do fim do viewport.
+
+   E a reserva é o valor exato do desenho, não uma medida parecida com ele. O
+   erro da primeira versão foi reservar um valor e desenhar outro: o palco
+   guardava `--cover-band` e a peça ocupava `--cover-band + 1.25rem`, então os
+   20px de sobra subiam por cima da reserva. No desktop sobravam 2px entre a
+   última linha e a arte e ninguém via; em qualquer tela estreita, em que o
+   texto enche a coluna e não sobra folga, a última linha do parágrafo caía
+   20px dentro do desenho.
+
+   Agora a reserva é `--cover-mark-h` — a altura máxima da assinatura, a mesma
+   variável que dimensiona o desenho — mais `--cover-air`, que é o pé de ar
+   entre o parágrafo e o traço. São duas medidas porque são duas coisas: a
+   altura do desenho diz onde a assinatura termina, e o ar diz que o texto não
+   encosta nela. Quando não sobra folga — tela estreita, texto longo — o palco
+   cresce para caber a soma, e o pior caso possível passa a ser o parágrafo
+   terminando `--cover-air` acima do traço, em vez de dentro dele.
+
+   `--cover-mark-h` tem dois termos, e o segundo não é detalhe. A peça quer um
+   tamanho de banda que vem da altura da tela (`23svh`) — o que faz sentido no
+   desktop, onde a folha é alta. No celular esse mesmo `23svh` fica MENOR que o
+   desenho: a assinatura é limitada por `70vw` (a margem das marcas de
+   registro), e a banda de 23svh, que não sabe disso, continuava reservando
+   mais alto do que a peça conseguia desenhar. A sobra ia toda para o pé da
+   folha e empurrava a dobra: 43px num 375x667, 87 num 360x640, 153 num
+   320x568 — com o traço já terminado e um vão de papel vazio embaixo dele.
+
+   O segundo termo diz o que a peça realmente pode desenhar: `70vw` de largura
+   é `70vw * 3/7` de altura, porque a razão do viewBox é 7/3. Com ele, nos
+   celulares a reserva e o desenho passam a coincidir: o termo da largura do
+   `.cover-mark` (que também é `70vw`) casa com o teto da altura, a peça desenha
+   `70vw` exatos e o vão de papel some. No desktop `min()` escolhe a banda e
+   nada muda. Medido: 375x667 sai de 43px de estouro para zero, 360x640 de 87
+   para 28, e nenhuma tela a partir de 390px se move. O que resta de estouro em
+   320x568 é o bloco de texto, não a arte. */
+.cover-stage {
+  --cover-band: clamp(8rem, 23svh, 18rem);
+  --cover-mark-h: min(calc(var(--cover-band) + 1.25rem), calc(70vw * 3 / 7));
+  --cover-air: clamp(1rem, 2.5vh, 1.75rem);
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding-top: clamp(2rem, 7vh, 5rem);
+  padding-bottom: calc(var(--cover-mark-h) + var(--cover-air));
+}
+
+/* A coluna de texto. 46rem é mais estreita que a régua do site (78rem) de
+   propósito: centralizado, o comprimento de linha que funciona é menor, e é
+   a largura que faz o parágrafo ler como apresentação e não como página. */
+.cover-intro {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 46rem;
+  margin-inline: auto;
+  text-align: center;
+}
+
+/* O nome. A referência usava ~79px em serifa no desktop; aqui a faixa vai de
+   42px no celular a 84px no desktop — na mesma altura, mas saindo das
+   utilidades de texto do próprio site em vez de um número solto.
+
+   `fit-content` porque a caixa do nome não é o texto: sendo `h1` de bloco, ela
+   ocuparia a coluna inteira (46rem) e o recorte do tour em volta do nome viraria
+   um retângulo largo com o nome boiando dentro, em vez de um recorte do nome. A
+   caixa passa a ter a largura da linha maior, e as duas linhas continuam
+   centradas uma com a outra pelo `text-align` herdado. */
+.cover-name {
+  width: fit-content;
+  margin-inline: auto;
+  margin-top: clamp(1rem, 2.5vh, 2rem);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.625rem, 6vw, 5.25rem);
+  line-height: 0.92;
+  letter-spacing: -0.012em;
+  text-transform: uppercase;
+  color: var(--ink-strong);
+}
+
+.cover-line {
+  display: block;
+}
+
+/* A apresentação. `--ink-soft` e não `--ink`: é o degrau que continua acima
+   de 4.5 de contraste tanto no papel quanto na banda, e este parágrafo cai
+   justamente sobre os dois. */
+.cover-lede {
+  margin-top: clamp(1.25rem, 3vh, 1.75rem);
+  max-width: 52ch;
+  margin-inline: auto;
+  font-size: var(--text-base);
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+/* A assinatura: o monograma centrado na base do palco, encostado no fio de
+   1px das marcas de registro — ele é desenhado na folha, não flutua sobre
+   ela. É o único desenho do site, e é o mesmo recurso que dá escala à
+   referência: uma peça gráfica isolada, muito papel em volta e a base da
+   dobra ocupada.
+
+   A largura tem três termos, e o terceiro é o que garante a invariante do
+   palco:
+
+     min(28rem, 70vw, calc(var(--cover-mark-h) * 7 / 3))
+
+   - `28rem` é o tamanho que a peça quer ter quando há espaço;
+   - `70vw` impede que ela encoste nas bordas em tela estreita, onde as
+     marcas de registro é que mandam na margem;
+   - `--cover-mark-h * 7 / 3` é o teto matemático. O viewBox é 182x78, razão
+     exata de 7/3, e a altura desenhada é sempre largura / (7/3). Amarrar a
+     largura ao valor que o palco reserva no `padding-bottom` significa que a
+     altura do desenho NUNCA passa da reserva — por construção, e não por
+     sorte de arredondamento. Ele só é o termo decisivo nos dois extremos, e
+     por motivos opostos: em tela larga e baixa (`70vw` muito grande) ele é o
+     que impede o desenho de crescer até colidir com o texto; em tela estreita
+     (`70vw` pequeno) é ele que acompanha o `70vw` do segundo termo e mantém a
+     reserva no tamanho exato do desenho. No meio da faixa `min()` ignora este
+     termo e o `28rem` responde.
+
+   Sem `preserveAspectRatio` no SVG: o padrão (`xMidYMid meet`) escala igual
+   nos dois eixos e centraliza o que sobra. É o que um monograma exige — a
+   peça anterior usava `slice`, que escala pelo maior quociente e recorta o
+   excedente; num arco abstrato passa, num A o ápice desaparece. Aqui não há
+   recorte em nenhuma largura, e o `viewBox` faz a altura sozinho. */
+.cover-mark {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: min(28rem, 70vw, calc(var(--cover-mark-h) * 7 / 3));
+  max-width: none;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* O traço do monograma. Espessura em unidades do viewBox (1,5 de 76 de altura
+   da letra — 2% dela), como no resto do desenho: a peça escala com a folha e o
+   risco acompanha, em vez de virar um fio fino numa tela e grosso na outra.
+   Junta e ponta arredondadas — é uma caneta, não uma régua. Sem `fill`: o
+   desenho é a linha.
+
+   Os dois por cento não são arbitrários: no menor desenho (360–390px de tela,
+   ~250–270px de peça) o traço cai para perto de 2px — abaixo disso o fio some
+   no papel. No maior (28rem), ele para perto de 3,7px e continua caneta; é o
+   mesmo peso lido nas duas pontas da escala. */
+.cover-mark-line {
+  fill: none;
+  stroke: var(--accent-bright);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* O convite a descer: um link de verdade, para o teclado também. */
+.cover-scroll {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ink-faint);
+  transition: color 0.2s ease;
+}
+.cover-scroll:hover,
+.cover-scroll:focus-visible {
+  color: var(--ink);
+}
+
+/* --------------------------------------------------------------------------
+   Marquee de tecnologias.
+   Faixa decorativa entre o hero e os cases. O trilho tem o conteúdo DUPLICADO
+   e anima até -50%: quando a primeira metade sai, a segunda ocupa exatamente
+   o mesmo lugar — a emenda é invisível porque é a mesma lista. Largura
+   `max-content` impede o flex de quebrar linha e travar a animação.
+   -------------------------------------------------------------------------- */
+@keyframes qda-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@utility marquee-track {
+  display: flex;
+  width: max-content;
+  animation: qda-marquee 38s linear infinite;
+}
+
+@utility marquee-mask {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 8%,
+    black 92%,
+    transparent
+  );
+}
+
+/* Rótulo de seção: mono, caixa alta, espaçado. */
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* --------------------------------------------------------------------------
+   Entrada orquestrada do hero.
+   Uma única coreografia na carga da página inteira — em vez do padrão
+   "fade-and-slide em toda seção", que é exatamente o que faz um site parecer
+   montado por máquina.
+   -------------------------------------------------------------------------- */
+@keyframes qda-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.7em);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes qda-rule {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes qda-plate {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@utility rise {
+  animation: qda-rise 0.72s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@utility rule-draw {
+  transform-origin: left center;
+  animation: qda-rule 0.9s cubic-bezier(0.2, 0.75, 0.15, 1) both;
+}
+
+@utility plate-reveal {
+  animation: qda-plate 0.95s cubic-bezier(0.3, 0.7, 0.2, 1) both;
+}
+
+/* Entrada do dossiê de case: deslize curto da direita, sem fade de opacidade
+   total — o painel já nasce opaco para o texto não aparecer borrado no meio
+   do movimento, e 2,5% de curso é o suficiente para ler como "veio de fora"
+   em vez de "apareceu". */
+@keyframes qda-panel {
+  from {
+    transform: translateX(2.5%);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@utility panel-in {
+  animation: qda-panel 0.34s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* Delays da coreografia. */
+@utility d-1 {
+  animation-delay: 0.05s;
+}
+@utility d-2 {
+  animation-delay: 0.13s;
+}
+@utility d-3 {
+  animation-delay: 0.21s;
+}
+@utility d-4 {
+  animation-delay: 0.3s;
+}
+@utility d-5 {
+  animation-delay: 0.4s;
+}
+@utility d-6 {
+  animation-delay: 0.5s;
+}
+
+/* Sublinhado que cresce no hover — usado em links de texto, não em cards. */
+@utility link-rule {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1px;
+  transition: background-size 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@utility link-rule-on {
+  background-size: 100% 1px;
+}
+
+/* --------------------------------------------------------------------------
+   Skip link.
+   Escrito como classe CSS comum, e não com `sr-only`/`focus:not-sr-only`:
+   nesta versão do Tailwind o `focus:not-sr-only` não gera regra nenhuma, então
+   o link ficava focável por teclado mas permanentemente invisível — pior do
+   que não existir. Aqui o estado de foco é explícito e não depende de variante.
+   -------------------------------------------------------------------------- */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 80;
+}
+
+.skip-link:focus-visible {
+  left: 1rem;
+  top: 0.75rem;
+  min-height: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  background-color: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  /* Sem animação, nada pode ficar invisível: a entrada do texto usa `both` a
+     partir de `opacity: 0`. Cortar a animação tem que deixar tudo na tela. */
+  .rise,
+  .rule-draw,
+  .plate-reveal,
+  .panel-in,
+  .marquee-track {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+
+  /* Sem animação, a cópia duplicada do trilho vira conteúdo repetido na tela:
+     esconde a segunda metade, que só existe para a emenda do loop. */
+  .marquee-track > [aria-hidden] {
+    display: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ==========================================================================
+   Camada de decisões — popover do driver.js
+   --------------------------------------------------------------------------
+   O driver injeta driver.css (importado no topo). Estas regras vencem pela
+   especificidade `.driver-popover.decision-popover` (0,2,0 contra 0,1,0), e
+   não pela ordem de importação — a ordem dos chunks CSS não é garantida.
+   O visual é o mesmo do resto do site: superfície elevada, fio de 1px, raio
+   de 3px e nenhuma sombra.
+   ========================================================================== */
+.driver-popover.decision-popover {
+  box-sizing: border-box;
+  width: min(22rem, calc(100vw - 2rem));
+  min-width: 0;
+  max-width: min(22rem, calc(100vw - 2rem));
+  padding: 1.125rem 1.25rem;
+  background-color: var(--paper-raised);
+  color: var(--ink);
+  border: 1px solid var(--rule-strong);
+  border-radius: 3px;
+  box-shadow: none;
+  font-family: var(--font-public-sans), system-ui, sans-serif;
+}
+
+/* O cartão final é menor: é um aviso, não uma nota de leitura. */
+.driver-popover.decision-popover-stopped {
+  width: min(20rem, calc(100vw - 2rem));
+  max-width: min(20rem, calc(100vw - 2rem));
+}
+
+.driver-popover.decision-popover .driver-popover-title {
+  padding-right: 1.5rem;
+  font-family: var(--font-newsreader), Georgia, "Times New Roman", serif;
+  font-size: 1.0625rem;
+  font-weight: 400;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--ink-strong);
+}
+
+.driver-popover.decision-popover .driver-popover-description {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.driver-popover.decision-popover .driver-popover-close-btn {
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: 1.125rem;
+  line-height: 1;
+  color: var(--ink-faint);
+}
+.driver-popover.decision-popover .driver-popover-close-btn:hover,
+.driver-popover.decision-popover .driver-popover-close-btn:focus-visible {
+  color: var(--ink);
+}
+
+.driver-popover.decision-popover .driver-popover-footer {
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--rule);
+}
+
+.driver-popover.decision-popover .driver-popover-progress-text {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.driver-popover.decision-popover .driver-popover-footer-btn {
+  display: inline-block;
+  cursor: pointer;
+  border: 1px solid var(--rule-strong);
+  border-radius: 3px;
+  padding: 0.375rem 0.75rem;
+  background-color: transparent;
+  color: var(--ink);
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  transition: background-color 0.15s ease;
+}
+.driver-popover.decision-popover .driver-popover-footer-btn:hover,
+.driver-popover.decision-popover .driver-popover-footer-btn:focus-visible {
+  background-color: var(--secondary);
+  color: var(--ink);
+}
+
+.driver-popover.decision-popover .driver-popover-navigation-btns button + button {
+  margin-left: 0.5rem;
+}
+
+/* Seta: mesma superfície do popover. Cada lado repete as transparências
+   porque a regra base acima tem especificidade maior que a do driver. */
+.driver-popover.decision-popover .driver-popover-arrow {
+  border-width: 6px;
+  border-color: var(--paper-raised);
+}
+.driver-popover.decision-popover .driver-popover-arrow-side-left {
+  border-top-color: transparent;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  border-left-color: var(--paper-raised);
+}
+.driver-popover.decision-popover .driver-popover-arrow-side-right {
+  border-top-color: transparent;
+  border-left-color: transparent;
+  border-bottom-color: transparent;
+  border-right-color: var(--paper-raised);
+}
+.driver-popover.decision-popover .driver-popover-arrow-side-top {
+  border-left-color: transparent;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  border-top-color: var(--paper-raised);
+}
+.driver-popover.decision-popover .driver-popover-arrow-side-bottom {
+  border-top-color: transparent;
+  border-left-color: transparent;
+  border-right-color: transparent;
+  border-bottom-color: var(--paper-raised);
+}
+
+/* --- Conteúdo injetado por `decisions.tsx` ------------------------------- */
+
+.driver-popover.decision-popover .decision-why {
+  margin-top: 0.875rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--rule);
+}
+
+.driver-popover.decision-popover .decision-why:focus-visible {
+  outline: 2px solid var(--accent-bright);
+  outline-offset: 4px;
+}
+
+.driver-popover.decision-popover .decision-why-link {
+  display: inline-block;
+  cursor: pointer;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--ink-faint);
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  line-height: 1.5;
+  text-transform: uppercase;
+  transition: color 0.15s ease;
+}
+.driver-popover.decision-popover .decision-why-link:hover,
+.driver-popover.decision-popover .decision-why-link:focus-visible {
+  color: var(--ink);
+}
+
+.driver-popover.decision-popover .decision-why-text {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.driver-popover.decision-popover .decision-why-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.driver-popover.decision-popover-stopped .decision-why-actions {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--rule);
+}
+
+.driver-popover.decision-popover .decision-action {
+  cursor: pointer;
+  border: 1px solid var(--rule-strong);
+  border-radius: 3px;
+  padding: 0.375rem 0.75rem;
+  background-color: transparent;
+  color: var(--ink);
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  transition: background-color 0.15s ease;
+}
+.driver-popover.decision-popover .decision-action:hover,
+.driver-popover.decision-popover .decision-action:focus-visible {
+  background-color: var(--secondary);
+}
+
+.driver-popover.decision-popover .decision-action-quiet {
+  cursor: pointer;
+  border: 0;
+  padding: 0.375rem 0;
+  background: none;
+  color: var(--ink-faint);
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  transition: color 0.15s ease;
+}
+.driver-popover.decision-popover .decision-action-quiet:hover,
+.driver-popover.decision-popover .decision-action-quiet:focus-visible {
+  color: var(--ink);
+}
+
+.driver-popover.decision-popover .driver-popover-footer-btn:focus-visible,
+.driver-popover.decision-popover .decision-action:focus-visible,
+.driver-popover.decision-popover .decision-action-quiet:focus-visible,
+.driver-popover.decision-popover .decision-why-link:focus-visible {
+  outline: 2px solid var(--accent-bright);
+  outline-offset: 2px;
 }

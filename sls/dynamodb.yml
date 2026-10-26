@@ -1,0 +1,88 @@
+Resources:
+  # Eventos de analytics (pageviews, downloads, cliques, etc.)
+  PortfolioEventsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:service}-${sls:stage}-events
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: day
+          AttributeType: S
+        - AttributeName: ts
+          AttributeType: N
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      # Consultas "todos os eventos de um dia" (série temporal para o painel)
+      GlobalSecondaryIndexes:
+        - IndexName: byDay
+          KeySchema:
+            - AttributeName: day
+              KeyType: HASH
+            - AttributeName: ts
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      # Limpeza automática dos eventos após 400 dias
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+
+  # Leads captados pelo formulário de contato
+  PortfolioLeadsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:service}-${sls:stage}-leads
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      # Filtro por status (new/read/replied) para o painel
+      GlobalSecondaryIndexes:
+        - IndexName: byStatus
+          KeySchema:
+            - AttributeName: status
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+
+Outputs:
+  PortfolioEventsTableName:
+    Value: !Ref PortfolioEventsTable
+    Export:
+      Name: PortfolioEventsTableName
+  PortfolioEventsTableArn:
+    Value: !GetAtt PortfolioEventsTable.Arn
+    Export:
+      Name: PortfolioEventsTableArn
+  PortfolioLeadsTableName:
+    Value: !Ref PortfolioLeadsTable
+    Export:
+      Name: PortfolioLeadsTableName
+  PortfolioLeadsTableArn:
+    Value: !GetAtt PortfolioLeadsTable.Arn
+    Export:
+      Name: PortfolioLeadsTableArn
