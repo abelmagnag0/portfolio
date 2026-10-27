@@ -1,118 +1,306 @@
-# Portfolio Site — Next.js static on AWS with Serverless
+<img src="public/og-en.png" alt="Abel Magnago, software engineer in Rio de Janeiro. Web systems since 2021." width="100%">
 
-This repo ships a static Next.js site behind CloudFront with TLS and custom domain, fully provisioned via Serverless Framework (CloudFormation). Content is exported to `out/` and served privately from S3 using a CloudFront Origin Access Control (OAC).
+# Abel Magnago · portfolio
 
-## Stack at a glance
+**A static Next.js site on AWS, provisioned end to end with Serverless Framework.**
+The public page is one half of it; the other half is a small first-party backend
+(analytics, contact, an admin panel behind Cognito + TOTP) wired into the same
+domain through CloudFront.
 
-- Frontend:
-  - Next.js
-  - React
-  - TypeScript
-  - TailwindCSS
-  - ESLint 9
-- Infra:
-  - Serverless:
-    - AWS:
-      - S3
-      - CloudFront
-      - Route 53
-      - ACM
-      - Lambda (HTTP API)
-      - DynamoDB (analytics + leads)
-      - SES (notificação de leads)
-      - Cognito (login do admin com TOTP obrigatório)
+<p>
+  <a href="https://abel.dev.br"><img src="https://img.shields.io/badge/live-abel.dev.br-1b3fbf?style=flat-square" alt="Live site"></a>
+  <a href="https://www.linkedin.com/in/abel-magnago1"><img src="https://img.shields.io/badge/LinkedIn-abel--magnago1-0a66c2?style=flat-square&logo=linkedin&logoColor=white" alt="LinkedIn"></a>
+  <a href="https://github.com/abelmagnag0"><img src="https://img.shields.io/badge/GitHub-abelmagnag0-181717?style=flat-square&logo=github&logoColor=white" alt="GitHub"></a>
+  <img src="https://img.shields.io/badge/Next.js-15-000000?style=flat-square&logo=nextdotjs&logoColor=white" alt="Next.js 15">
+  <img src="https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react&logoColor=black" alt="React 19">
+  <img src="https://img.shields.io/badge/TypeScript-3178c6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/AWS-CloudFront_·_Lambda_·_DynamoDB_·_Cognito-ff9900?style=flat-square&logo=amazonaws&logoColor=white" alt="AWS">
+</p>
 
-## Application layers (analytics, leads, admin)
+<!-- TOC -->
+## Contents
 
-Além do site estático, o repositório inclui uma API serverless servida no mesmo
-domínio via CloudFront (`/api/*`), sem CORS:
+- [Screenshots](#screenshots)
+- [What this is](#what-this-is)
+- [The idea behind it](#the-idea-behind-it)
+- [Art direction](#art-direction)
+- [Architecture](#architecture)
+- [Infrastructure, service by service](#infrastructure-service-by-service)
+- [The application layers](#the-application-layers)
+- [Serverless, and why](#serverless-and-why)
+- [Security posture](#security-posture)
+- [SEO and performance](#seo-and-performance)
+- [Run it locally](#run-it-locally)
+- [First-time setup](#first-time-setup)
+- [Deploying](#deploying)
+- [Repo map](#repo-map)
+- [Links](#links)
 
-- **Analytics first-party** — o front (`src/library/analytics`) envia eventos
-  (`pageview`, `cv_download`, `contact_submit`, `social_click`, `project_view`,
-  `section_view`, `language_switch`) para `POST /api/track`. A geolocalização
-  (país/cidade) vem dos headers `CloudFront-Viewer-*`, sem capturar IP do visitante.
-- **Captação de leads** — o formulário em `src/library/sections/contact.tsx`
-  envia para `POST /api/leads`; o lead é persistido e o dono recebe e-mail via SES.
-- **Painel admin** — página estática em `/admin` (client-side) que faz login
-  pelo Cognito (Authorization Code + PKCE) e chama a API com o access token.
-  O segundo fator (TOTP, app autenticador) é obrigatório.
+---
 
-### Endpoints
+## Screenshots
 
-| Método | Rota | Descrição |
+Captured from the built site, not mocked up. The framing changes but the content
+doesn't: the artefacts below are the page as it ships.
+
+### The title page, both themes
+
+Dark is the default. Light is warm paper, and it's applied before first paint
+so there's no flash when you switch.
+
+| Dark (default) | Light |
+| --- | --- |
+| <img src="docs/cover-dark.png" alt="Title page, dark theme. Role, name, one sentence, drawn signature at the foot." width="100%"> | <img src="docs/cover-en.png" alt="Title page, light theme. Same composition on warm paper." width="100%"> |
+
+### Portuguese, at `/pt`
+
+| |
+| --- |
+| <img src="docs/cover-pt.png" alt="Portuguese title page at /pt, light theme." width="100%"> |
+
+### The document below the cover
+
+Third person, left aligned, separated by 1px rules and space. On the left, the
+project cards; on the right, one case opened, with the problem, the screens and
+the result.
+
+| Projects | Experience |
+| --- | --- |
+| <img src="docs/work.png" alt="Projects section: a two-column grid of case cards, each opening with a product screenshot, the client's logo, the case title and the client name." width="100%"> | <img src="docs/experience.png" alt="Experience section. Each entry carries the role, the employer, a sentence on the work, and a monospace line with the period, contract type and location." width="100%"> |
+
+| A case, opened |
+| --- |
+| <img src="docs/dossier.png" alt="A case opened as an overlay: the case title, the sector and the period, a carousel of the product screens, and the narrative underneath." width="100%"> |
+
+## What this is
+
+A portfolio site for a software engineer, and a deliberate excuse to build the
+whole thing properly: hand-written design system, static export, real
+infrastructure as code, first-party analytics with no third-party tracker, and
+an admin panel that only I can open.
+
+It is also, unavoidably, **a portfolio of the portfolio**. Every decision that
+would normally be invisible (why this accent colour, why the S3 bucket is
+private, why there is no Inter font) is written down in the code as a comment
+next to the decision it explains. This README is the map to those decisions.
+
+Two rules shaped the whole thing:
+
+1. **Nothing on the page may be a claim I can't back up in an interview.**
+   The copy describes the object that was built, with the number attached,
+   instead of listing the phases of a job title.
+2. **No design decision may be the framework default.** The default is exactly
+   what makes a page read as machine-made, so each one was either justified in
+   writing or replaced.
+
+## The idea behind it
+
+The site is laid out as a **document**, not a landing page:
+
+- The first screen is a **title page** (*folha de rosto*): the role, the name in
+  a large serif, one sentence, and the author's signature drawn at the foot.
+  That is the one place on the site written in the first person and centred.
+- Everything below it is **document**: third person, left-aligned, separated by
+  1px rules and space rather than cards and shadows.
+- Nothing advertises availability. The role is stated as identity, not as a
+  signal that I'm on the market.
+- Each section carries a **decision note**: a small floating annotation (built
+  with `driver.js`) that says what was chosen and why. It can be turned off, and
+  it stays off.
+
+## Art direction
+
+The palette was **derived from my own portrait** (the warm khaki-to-cream range
+in the photograph) rather than picked from a preset. That single constraint is
+what keeps the page from looking like a theme.
+
+| | |
+| --- | --- |
+| **Surface** | Three steps only: `#131313` paper, `#1f1f1f` alternating band, `#2a2a2a` elevated. Separation comes from the step and a 1px rule, **never** from a shadow. |
+| **Ink** | A four-step ramp, each value **measured with the WCAG 2.x contrast formula** against the real background of each element. The table with every ratio is in `src/app/globals.css`. |
+| **Accent** | Cobalt `#1b3fbf`. High contrast on paper, and deliberately far from generic SaaS blue and from the purple gradient that gives away a generated interface. It is the **only** colour on a page otherwise made of black, white and a 1px rule. |
+| **Type** | Three families, three jobs: **Newsreader** (editorial high-contrast serif, display only), **Public Sans** (body and UI), **JetBrains Mono** (numbers, section labels, dates, stack). Not Inter, not Roboto, not `system-ui`. That is the first symptom of a machine-generated page. |
+| **Shape** | Radius `0` on structural surfaces, `3px` on interactive elements. No large radius, no pills, no floating cards. |
+| **Texture** | A paper grain, as an inline SVG `feTurbulence`, with no `mix-blend-mode` on purpose, to keep the compositing cost predictable while scrolling. |
+| **Theme** | Dark is the default. Light (warm paper) is the alternate, chosen by the visitor or by the OS, applied before first paint by a small inline script so there is no flash. |
+
+The signature at the foot of the title page is **drawn, not illustrated**: a
+single `<path>` of thirteen points, under 300 bytes, inside the HTML that was
+already being sent. One line, one weight, no fill, no gradient, no mask, no
+bitmap, no imported vector. It costs nothing after the text and it can't break
+without a network. The grid it was built on (a 7:3 viewBox, apex and baseline,
+the width ratio of each letter) is documented next to it in
+`src/library/sections/cover.tsx`.
+
+One motif was cut on the way here, and the reason is recorded beside the code:
+the piece that preceded the monogram was a celestial body with three layers of
+surface, and it left for exactly that reason, because a large arc rising from
+the footer is already somebody else's visual signature.
+
+## Architecture
+
+```mermaid
+flowchart TB
+  V(["visitor"]) -->|"HTTPS"| R53["Route 53<br/>A / ALIAS"]
+  R53 --> CF["CloudFront<br/>TLS 1.2_2021 · OAC"]
+  CF -->|"/ · /pt · /admin · /404"| Fn["CloudFront Function<br/>clean URLs → .html"]
+  Fn --> S3[("S3<br/>private · blocks all public access")]
+  CF -->|"/api/* · never cached"| APIGW["API Gateway HTTP API"]
+  APIGW -->|"public routes"| L1["Lambda<br/>track · leads · config"]
+  APIGW -->|"JWT authorizer"| L2["Lambda<br/>admin/stats · admin/leads"]
+  L1 --> DDB[("DynamoDB<br/>events · leads")]
+  L2 --> DDB
+  L1 --> SES["SES<br/>new-lead e-mail"]
+  APIGW -.->|"validates token"| COG["Cognito<br/>password + mandatory TOTP"]
+```
+
+The static export and the API share one domain, so nothing needs CORS from the
+browser's point of view: `/api/*` is a CloudFront cache behaviour pointing at the
+HTTP API origin.
+
+## Infrastructure, service by service
+
+All of it is CloudFormation written as Serverless Framework resources, split by
+concern under `sls/`. What each service is actually doing here:
+
+| Service | Role | Notable choices |
 | --- | --- | --- |
-| POST | `/api/track` | Registra um evento de analytics |
-| POST | `/api/leads` | Recebe o formulário de contato |
-| GET | `/api/config` | Publica host e client id públicos do Cognito |
-| GET | `/api/admin/stats?days=30` | Métricas agregadas (exige JWT) |
-| GET | `/api/admin/leads` | Lista os leads recentes (exige JWT) |
-| PATCH | `/api/admin/leads` | Atualiza status (`new`/`read`/`replied`, exige JWT) |
+| **S3** | Origin for the static export. | Private: `PublicAccessBlockConfiguration` sets all four flags, `OwnershipControls` enforces bucket-owner. The bucket policy grants read **only** to the CloudFront service principal, additionally restricted with a `AWS:SourceArn` condition to this exact distribution. `DeletionPolicy: Retain`. |
+| **CloudFront** | One entry point for the site and the API, TLS, caching. | Origin Access Control (SigV4, sign always) instead of a public bucket. Static assets use the managed *CachingOptimized* policy and are compressed; `/api/*` uses *CachingDisabled*. 403 and 404 both render `/404.html`. Certificate is SNI-only at TLS 1.2_2021. |
+| **CloudFront Function** | Clean URLs. | The static export emits `pt.html`, not `pt/index.html`, so a viewer-request function (JavaScript, `cloudfront-js-2.0`) normalises the trailing slash and appends `.html` to extensionless paths. That's what makes `/pt` and `/admin` work without a file extension. |
+| **Route 53** | DNS. | Two `A` ALIAS records (apex and `www`) pointing at the distribution. |
+| **ACM** | Certificate. | DNS-validated for apex + `www`, in `us-east-1` (the region CloudFront requires, regardless of where the stack lives). |
+| **API Gateway** | HTTP API in front of the Lambdas. | CORS allow-list is explicit. A **JWT authorizer** validates Cognito access tokens at the gateway, so the two admin Lambdas are never even invoked without a valid token. |
+| **Lambda** | Five handlers, one job each. | `track`, `leads`, `admin-config` are public; `admin-stats`, `admin-leads` sit behind the authorizer. IAM is least-privilege: `PutItem`/`Query`/`UpdateItem` on the two tables and their indexes, plus `ses:SendEmail`. Only `dist-api/**` is packaged, which keeps the zip tiny. |
+| **DynamoDB** | Two tables, pay-per-request. | `events` (analytics) has a `byDay` GSI and a **TTL of 400 days**. `leads` has a `byStatus` GSI. Both are `Retain` on delete. |
+| **SES** | New-lead notification. | Runs in `sa-east-1` (identities verified, out of the sandbox) while the stack is in `us-east-1`, so the region is pinned through a `SES_REGION` env var. The sender is `no-reply@abel.dev.br`. |
+| **Cognito** | Admin identity. | A single user pool with **no self-signup** (`AllowAdminCreateUserOnly`), a 12-character minimum password policy, and **mandatory TOTP**. The app client is **public, with no client secret** (`Authorization Code + PKCE`), because a static site runs its auth code in the browser and a public client is the correct fit for that. |
 
-As rotas `/api/admin/*` usam o authorizer JWT do API Gateway: sem um access
-token válido do Cognito a Lambda nem é chamada.
+## The application layers
 
-Código dos handlers em `backend/`; são empacotados por `scripts/build-api.mjs`
-(esbuild) para `dist-api/`, que é o que o Serverless publica.
+Beyond the static page, the same domain serves a small backend at `/api/*`,
+proxied by CloudFront.
 
-### Setup (primeira vez)
+| Method | Route | What it does |
+| --- | --- | --- |
+| `POST` | `/api/track` | Records one analytics event |
+| `POST` | `/api/leads` | Receives the contact form, stores the lead, notifies me |
+| `GET` | `/api/config` | Publishes the public Cognito host + client id the admin panel needs |
+| `GET` | `/api/admin/stats?days=30` | Aggregated metrics (JWT required) |
+| `GET` | `/api/admin/leads` | Recent leads (JWT required) |
+| `PATCH` | `/api/admin/leads` | Updates a lead status (`new`/`read`/`replied`, JWT required) |
 
-0. Autentique o Serverless Framework. O v4 recusa qualquer comando sem login ou
-   chave de licença:
+- **Analytics, first-party.** The client (`src/library/analytics/`) posts
+  `pageview`, `cv_download`, `contact_submit`, `contact_success`,
+  `contact_error`, `social_click`, `project_view`, `section_view`,
+  `language_switch` and `outbound_click` to `/api/track`. There is no
+  third-party tracker. Geolocation comes from CloudFront's
+  `CloudFront-Viewer-*` headers, so **the visitor's IP is never read**.
+- **Contact.** `src/library/sections/contact.tsx` posts to `/api/leads`. The
+  handler has a honeypot field, length caps on every field, an HTML-escaped
+  e-mail body, and it normalises `\r\n` before using the address as the SES
+  reply-to, so a header can't be injected.
+- **Admin.** `/admin` is a static client-side page that signs in through Cognito
+  (Authorization Code + PKCE) and calls the API with the access token. TOTP is
+  required, and the page is `noindex` and disallowed in `robots.txt`.
 
-   ```bash
-   sls login
-   ```
+Handler sources live in `backend/` and are bundled by `scripts/build-api.mjs`
+(esbuild) into `dist-api/`, which is the only thing Serverless packages.
 
-   A máquina pode guardar uma chave (`~/.serverlessrc` com `userId: null`)
-   mesmo depois de trocar de computador. Para rodar sem terminal, defina
-   `SERVERLESS_ACCESS_KEY` ou `SERVERLESS_LICENSE_KEY`.
+## Serverless, and why
 
-1. Verifique no SES o remetente (`no-reply@abel.dev.br`) — domínio verificado ou,
-   em sandbox, o e-mail de destino. Ajuste `custom.leadRecipient`/`custom.sesSender`
-   em `serverless.yml` se necessário.
+The whole stack is one `sls deploy` away from existing, and deploying content is
+one command that doesn't touch infrastructure. That split is the point:
 
-2. Deploy da infra (inclui API, tabelas, Cognito e o behavior `/api/*` no
-   CloudFront):
+- **`pnpm run deploy`** does infrastructure. `build:api` then `sls deploy`.
+  CloudFormation creates or updates every resource above, including the
+  `/api/*` behaviour on the CloudFront distribution.
+- **`pnpm run publish`** does content. `pnpm build` (static export to `out/`),
+  then `aws s3 sync ./out` and a CloudFront invalidation. No infrastructure
+  change.
 
-   ```bash
-   pnpm run deploy
-   ```
+Two traps are worth knowing before you run either:
 
-3. Crie o único usuário do painel. O script pede o e-mail e a senha no terminal
-   e nunca grava a senha em arquivo:
+- **`pnpm deploy` and `pnpm publish` without `run` are pnpm's own commands**
+  (workspace deploy, registry publish) and won't touch this project's scripts.
+  Use `pnpm run`.
+- **The service is named `portfolio`, but the stack is still
+  `portfolio-site-dev`.** The stack was created when the project lived on a
+  different computer, and it already owns the CloudFront distribution and the
+  DNS records. Renaming it would create a parallel stack and the `A`/`ALIAS`
+  records would collide. To migrate properly you'd remove `ApexRecord` and
+  `WwwRecord` first. This is pinned deliberately in `serverless.yml`.
 
-   ```bash
-   pnpm run admin:create
-   ```
+Serverless Framework v4 also refuses to run without a login or a key; the
+first-time setup below covers that.
 
-4. Acesse `https://abel.dev.br/admin` e clique em **Entrar**. O Cognito mostra
-   e-mail/senha e, no primeiro acesso, o QR code para cadastrar o app
-   autenticador. Nos logins seguintes ele pede o código de 6 dígitos.
+## Security posture
 
-   Perdeu o celular ou trocou de autenticador?
+- **No application secret exists.** There is no password, no session secret and
+  no HMAC key in the repo, in the CloudFormation template, or in any Lambda's
+  environment. Identity lives in Cognito and the gateway validates the token.
+  This was a deliberate move away from an earlier SSM-password design, where the
+  secret would have been resolvable into the template and into
+  `aws lambda get-function-configuration`.
+- The S3 bucket blocks all public access and is readable only by this
+  distribution, enforced by `SourceArn`.
+- CloudFront redirects viewers to HTTPS and serves TLS 1.2_2021 minimum.
+- Admin: password (12+ chars) **and** mandatory TOTP. The pool allows no
+  self-signup. The gateway's JWT authorizer runs before any admin Lambda.
+- Analytics stores no IP address; events self-delete after 400 days.
+- The contact endpoint has a honeypot and normalises input against header
+  injection.
 
-   ```bash
-   pnpm run admin:reset-mfa
-   ```
+## SEO and performance
 
-   Isso remove o TOTP; o próximo login cadastra um novo. Não existe
-   autoatendimento para remover o segundo fator — de propósito.
+Built to be crawled, ranked and read.
 
-### Local dev da API (opcional)
+- **Content that is crawlable without JavaScript.** Each project card carries a
+  visually-hidden (`sr-only`, i.e. `clip-path`, not `display:none`) copy of the
+  full case text, so a crawler that doesn't execute scripts still sees what was
+  built. The visible card is unchanged.
+- **Structured data**, via `next-seo`: a `ProfilePageJsonLd` for the author, a
+  `WebSite` + `Person` graph, `WorkJsonLd` (an `ItemList` of `CreativeWork`s with
+  the stack as keywords), and `NavigationJsonLd` (`SiteNavigationElement`). The
+  `Person` nodes share one `@id` so the search engine treats them as one entity.
+- **Internationalisation**: English at `/`, Portuguese at `/pt`, with canonical
+  and `hreflang` (including `x-default`) generated from a single source of truth.
+- **OG/Twitter cards** are static 1200×630 PNGs (`public/og.png`, `og-en.png`)
+  built by `scripts/build-og.mjs`. Next's `opengraph-image.tsx` convention is
+  **not** used: it requires an edge runtime, and with `output: 'export'` the file
+  was simply never generated, so every link preview 404'd.
+- **Performance**: CSS is inlined into the exported HTML (`scripts/inline-css.mjs`)
+  so the first paint needs no CSS request; the case dossier is a lazy
+  `import()`; off-screen sections use `content-visibility: auto`; the cover
+  signature is code, not an image; `sitemap.ts` and `robots.ts` come from the
+  Metadata API.
 
-O site não chama a API em `dev` por padrão (os eventos falham em silêncio). Para
-apontar o front para uma API local, defina `NEXT_PUBLIC_API_BASE`.
+Validate the result with the Rich Results Test, the LinkedIn Post Inspector and
+Twitter's Card Validator.
 
-## Run with Docker (dev)
+## Run it locally
 
-Sobe o dev server (com hot reload) em container, montando o projeto:
+Requirements: Node 18.18+, `pnpm`, and the AWS CLI configured (only for
+publishing).
 
 ```bash
-pnpm install            # uma vez, no host (o container reaproveita node_modules)
+pnpm install
+pnpm dev          # dev server
+pnpm build        # static export → out/
+pnpm typecheck    # tsc --noEmit
+pnpm lint         # eslint
+```
+
+### Docker dev server
+
+Runs the dev server (with hot reload) in a container, with the project mounted:
+
+```bash
+pnpm install            # once, on the host (the container reuses node_modules)
 docker compose up       # → http://localhost:4321
 ```
 
-Ou, sem compose:
+Or without compose:
 
 ```bash
 docker run --rm -it --user "$(id -u):$(id -g)" -e HOME=/tmp \
@@ -120,133 +308,115 @@ docker run --rm -it --user "$(id -u):$(id -g)" -e HOME=/tmp \
   ./node_modules/.bin/next dev -H 0.0.0.0 -p 3000
 ```
 
-O `.next` fica isolado em `.next-container/` (gitignored) para que rodar
-`pnpm build` no host não corrompa o cache do dev server em execução.
+`.next` is isolated in `.next-container/` (gitignored) so a `pnpm build` on the
+host can't corrupt a dev server that's running. There's also a `Dockerfile`
+with a self-contained build for when you don't want to depend on the host's
+`node_modules`.
 
-Há também um `Dockerfile` com build self-contained (instala as deps dentro da
-imagem); útil quando não se quer depender do `node_modules` do host.
+> Locally, `/api/*` doesn't exist, so analytics fail silently and admin login
+> won't connect. For a full preview, point `NEXT_PUBLIC_API_BASE` at a local API
+> or deploy. The Cognito pool accepts callbacks on `localhost:3000`, `:3100` and
+> `:4321`; another port must be added to `CallbackURLs`/`LogoutURLs` in
+> `sls/cognito.yml`.
 
-> Nota: localmente a API (`/api/*`) não existe, então os eventos de analytics
-> falham em silêncio e o login do admin não conecta. Para preview completo,
-> aponte `NEXT_PUBLIC_API_BASE` para uma API local ou faça o deploy. O pool
-> aceita callback em `localhost:3000`, `localhost:3100` e `localhost:4321`; se
-> o dev server usar outra porta, ela precisa ser adicionada em
-> `CallbackURLs`/`LogoutURLs` no `sls/cognito.yml`.
+## First-time setup
 
-## Local dev
+0. Authenticate the Serverless Framework. v4 refuses any command without a login
+   or a licence key:
 
-Requirements:
+   ```bash
+   sls login
+   ```
 
-- Node 18.18+
-- pnpm
-- AWS CLI configured (for publishing)
+   A machine can keep a stale key (`~/.serverlessrc` with `userId: null`) even
+   after you switch computers. To run without a terminal, set
+   `SERVERLESS_ACCESS_KEY` or `SERVERLESS_LICENSE_KEY`.
 
-Run the dev server:
+1. Verify the SES sender (`no-reply@abel.dev.br`). The domain is verified, or in
+   sandbox the recipient. Adjust `custom.leadRecipient` / `custom.sesSender` in
+   `serverless.yml` if needed.
+
+2. Deploy the infrastructure (API, tables, Cognito, and the `/api/*` behaviour on
+   CloudFront):
+
+   ```bash
+   pnpm run deploy
+   ```
+
+3. Create the single admin user. The script prompts for the e-mail and password
+   in the terminal and never writes the password to a file:
+
+   ```bash
+   pnpm run admin:create
+   ```
+
+4. Open `https://abel.dev.br/admin` and sign in. Cognito asks for e-mail and
+   password, and on the first login shows the QR code to register the
+   authenticator app. Subsequent logins ask for the 6-digit code.
+
+   Lost the phone or switched authenticator?
+
+   ```bash
+   pnpm run admin:reset-mfa
+   ```
+
+   That removes the TOTP; the next login registers a new one. There is no
+   self-service way to remove the second factor, on purpose.
+
+## Deploying
 
 ```bash
-pnpm dev
+pnpm run build:api   # esbuild → dist-api/
+sls deploy           # or: pnpm run deploy
 ```
 
-Build (static export → `./out`):
-
-```bash
-pnpm build
-```
-
-## Infrastructure deploy
-
-Provision the AWS resources (S3, CloudFront + OAC, ACM, Route 53, Lambda HTTP API,
-DynamoDB, SES) via Serverless. Bundle the Lambda handlers first:
-
-```bash
-pnpm run build:api   # esbuild -> dist-api/
-sls deploy           # ou: pnpm run deploy (build:api + sls deploy)
-```
-
-> `pnpm deploy` e `pnpm publish`, sem o `run`, **não** chamam os scripts deste
-> projeto: são comandos nativos do pnpm/npm (deploy de workspace e publicação
-> no registry). Com `run` eles caem no `package.json`.
-
-> **Nome do serviço vs. nome da stack.** O serviço se chama `portfolio`, mas
-> `provider.stackName` e `custom.bucketName` estão fixos em `portfolio-site-dev`,
-> que é a stack criada quando o projeto morava em outro computador. Isso é
-> intencional: a stack já tem a distribuição CloudFront e os registros de DNS
-> do domínio, então trocar o nome criaria uma stack paralela e os registros
-> `A`/`ALIAS` colidiriam. Para migrar, remova `ApexRecord` e `WwwRecord` antes.
-
-## Publishing content (S3 sync + CloudFront invalidation)
-
-Use the publish script after building:
+To publish content after a change (build, S3 sync, CloudFront invalidation):
 
 ```bash
 pnpm run publish
 ```
 
-Supported envs for the script (optional):
+Optional env vars for the publish script: `STACK_NAME` (default
+`portfolio-site-dev`), `AWS_PROFILE`, `AWS_REGION` / `AWS_DEFAULT_REGION`, and
+`DOMAIN_NAME` (used as a fallback to find the distribution by alias).
 
-- `STACK_NAME` (default: `portfolio-site-dev`)
-- `AWS_PROFILE`, `AWS_REGION` (or `AWS_DEFAULT_REGION`) for the AWS CLI
-- `DOMAIN_NAME` (used as a fallback to find the distribution by alias)
-
-## Security posture
-
-- S3 bucket is private (no public ACLs/policies). Public access is blocked at the bucket level.
-- Bucket ownership is enforced via OwnershipControls.
-- Only CloudFront (service principal) can read from the bucket, restricted by SourceArn of the specific distribution.
-- Viewer protocol policy on CloudFront enforces HTTPS (redirect to HTTPS).
-- Admin protegido pelo Cognito: e-mail + senha (mínimo 12 caracteres) e TOTP
-  obrigatório. O API Gateway valida o JWT antes de qualquer Lambda de admin
-  rodar; não existe senha ou segredo de sessão no repositório, no template do
-  CloudFormation ou nas variáveis de ambiente das funções. O painel (`/admin`)
-  é `noindex` e bloqueado em `robots.txt`.
-- Analytics não armazena IP; a geolocalização usa apenas os headers do CloudFront.
-- Eventos expiram automaticamente após 400 dias (TTL no DynamoDB).
-
-## Caching & performance
-
-- Uses AWS managed cache policy (CachingOptimized). Static assets are compressed.
-- Publishing runs a full `/*` invalidation; tune paths if needed for large sites.
-
-## DNS & certificates
-
-- Route 53 A (Alias) for apex and `www` to the distribution.
-- ACM certificate is DNS-validated in `us-east-1`.
-- Optional: add a CloudFront Function to force `www → apex` redirect.
-
----
-
-## SEO
-
-- Meta tags e Open Graph via Metadata API do Next (App Router), nos layouts de cada route group (`src/app/(en)/layout.tsx` serve a raiz `/`, `src/app/(pt)/layout.tsx` serve `/pt` e o painel `/admin`).
-  - OG/Twitter usam cartões estáticos 1200×630 em `public/og.png` (PT) e `public/og-en.png` (EN), gerados por `pnpm og`.
-    A convenção `opengraph-image.tsx` **não** é usada: ela exige runtime de edge e o projeto usa `output: 'export'`, então o Next não gerava o arquivo e a rota respondia 404 em produção.
-  - `metadataBase` garante URLs absolutas.
-- `next-seo` instalado e usado para JSON-LD:
-  - Perfil do autor com `ProfilePageJsonLd` na casca compartilhada (`src/library/app/root-shell.tsx`).
-  - `WorkJsonLd` gera automaticamente um `ItemList` de cases a partir de `src/library/sections/work.data.ts`.
-  - `NavigationJsonLd` publica `SiteNavigationElement` com as âncoras da home.
-- Sitemap e Robots prontos com a Metadata Route do Next:
-  - `src/app/sitemap.ts` e `src/app/robots.ts` usam `SITE_URL` centralizado.
-
-Boas práticas adotadas:
-
-- Canonical e `hreflang` por idioma, saindo de uma fonte única (`LOCALE_PATH` / `ALTERNATE_LANGUAGES` em `src/library/seo/site.ts`): a raiz `/` é o inglês, `/pt` é o português, e `x-default` aponta para a raiz. Título com template e descrição focada em palavras-chave reais.
-- OG otimizado (1200×630, `summary_large_image`).
-- Estruturas JSON-LD para contexto da página (pessoa, navegação e lista de cases).
-- Revalidação diária de `robots` e `sitemap` para export estático.
-
-Imagens e ícones (regeneração):
+Regenerating assets:
 
 ```bash
-pnpm images   # retrato: recortes 4:5 e quadrado a partir de assets/portrait-source.png
-pnpm og       # cartões de link: public/og.png e public/og-en.png
-pnpm assets   # os dois acima
+pnpm images   # portrait crops (4:5 and square) from assets/portrait-source.png
+pnpm logos    # project logos → public/projects/*
+pnpm og       # link cards → public/og.png and public/og-en.png
+pnpm assets   # all three (images + logos + og)
 ```
 
-`pnpm og` reutiliza os `.woff2` que o `next/font` emitiu em `.next/` e requer `chromium` no PATH — rode depois de um `pnpm build`.
+`pnpm og` reuses the `.woff2` files emitted by `next/font` into `.next/` and
+needs `chromium` on `PATH`, so run it after a `pnpm build`. `pnpm images` shells
+out to `ffmpeg`, which also needs to be on `PATH`.
 
-Como validar:
+## Repo map
 
-- Rich Results Test (Google)
-- Card Validator (Twitter) / Post Inspector (LinkedIn)
+```
+backend/          Lambda handler sources (bundled to dist-api/ by esbuild)
+docs/             screenshots used by this README (real captures of the built site)
+sls/              CloudFormation resources, split by service
+  cognito.yml       user pool, TOTP, public PKCE client
+  s3.yml            private bucket + CloudFront-only bucket policy
+  cloudfront.yml    distribution, OAC, clean-URL function, /api/* behaviour
+  dynamodb.yml      events (byDay, 400-day TTL) and leads (byStatus)
+  route53.yml       apex + www ALIAS records
+  acm.yml           DNS-validated certificate
+scripts/          build-api · inline-css · build-og · prepare-images/logos · publish.sh · admin scripts
+src/
+  app/(en)/         root route group "/" (English metadata)
+  app/(pt)/         "/pt" (Portuguese metadata)
+  app/globals.css   design tokens, with the contrast table
+  library/sections/ the page, section by section (+ *.data.ts as the content source)
+  library/seo/      site constants and the JSON-LD builders
+serverless.yml    provider, functions, IAM, and the pinned stack/bucket name
+```
 
+## Links
+
+- **Live site**: [abel.dev.br](https://abel.dev.br) · [português](https://abel.dev.br/pt)
+- **LinkedIn**: [abel-magnago1](https://www.linkedin.com/in/abel-magnago1)
+- **GitHub**: [abelmagnag0](https://github.com/abelmagnag0)
