@@ -14,14 +14,31 @@ export const ROLE = "Engenheiro de Software" as const;
 export const ROLE_EN = "Software Engineer" as const;
 
 export const SITE_DESCRIPTION =
-  "Engenheiro de Software: Node.js, TypeScript, React e AWS. Cinco anos em sistemas de governo, jurídico e educação." as const;
+  "Engenheiro de Software no Rio de Janeiro: Node.js, TypeScript, React e AWS, sistemas de governo, jurídico e educação e IA em produção." as const;
 export const SITE_DESCRIPTION_EN =
-  "Software Engineer working in Node.js, TypeScript, React and AWS. Five years on government, legal and education systems." as const;
+  "Software Engineer in Rio de Janeiro: Node.js, TypeScript, React and AWS, government, legal and education systems, and AI in production." as const;
 
 export const SOCIAL = {
   github: "https://github.com/abelmagnag0",
   linkedin: "https://www.linkedin.com/in/abel-magnago1",
 } as const;
+
+/**
+ * Dados de identificação que alimentam o JSON-LD (`Person`).
+ *
+ * Ficam aqui, e não soltos nos componentes, para que a página, o cartão de
+ * link e o dado estruturado não possam divergir — e para o Google conseguir
+ * ligar a pessoa à instituição em que trabalha, à faculdade e à credencial.
+ *
+ * São afirmações conferíveis (as mesmas que estão na tela, em Formação e
+ * Experiência), não um resumo de vendas: dado estruturado inventado é o tipo
+ * de exagero que aparece na primeira entrevista técnica.
+ */
+export const CURRENT_EMPLOYER = "Controladoria-Geral do Estado do Rio de Janeiro" as const;
+export const ALMA_MATER = "Universidade Unigranrio | Afya" as const;
+export const TOP_CREDENTIAL =
+  "Certificate in AI and Digital Transformation in Government, Saïd Business School, University of Oxford" as const;
+export const PERSON_ID = `${SITE_URL}/#person` as const;
 
 /**
  * Título da página.

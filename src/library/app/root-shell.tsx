@@ -1,12 +1,17 @@
 import { Analytics } from "@/library/analytics/analytics";
 import { SettingsProvider } from "@/library/utils/settings-provider";
 import {
+  ALMA_MATER,
+  CURRENT_EMPLOYER,
+  PERSON_ID,
   ROLE,
   ROLE_EN,
   SITE_DESCRIPTION,
   SITE_DESCRIPTION_EN,
   SITE_NAME,
   SITE_URL,
+  SOCIAL,
+  TOP_CREDENTIAL,
 } from "@/library/seo/site";
 import type { Lang } from "@/library/utils/dictionary";
 import { JsonLdScript, ProfilePageJsonLd } from "next-seo";
@@ -84,6 +89,7 @@ export function RootShell({
   children: React.ReactNode;
 }) {
   const description = lang === "en" ? SITE_DESCRIPTION_EN : SITE_DESCRIPTION;
+  const sameAs = [SOCIAL.github, SOCIAL.linkedin];
 
   return (
     <html
@@ -98,24 +104,51 @@ export function RootShell({
             name: SITE_NAME,
             alternateName: "Abel dev",
             description,
-            sameAs: [
-              "https://github.com/abelmagnag0",
-              "https://www.linkedin.com/in/abel-magnago1",
-            ],
+            image: `${SITE_URL}/portrait-square.webp`,
+            sameAs,
             url: SITE_URL,
           }}
         />
-        {/* Identificação (cargo, áreas, idiomas) — campos que o tipo Person do
-            next-seo não expõe, então vão num nó Person próprio. É quem ele é,
-            não sinal de que está procurando vaga. */}
+        {/* Identificação (cargo, vínculo, formação, áreas, idiomas) — campos
+            que o tipo `Person` do next-seo não expõe, então vão num nó Person
+            próprio, com `@id` estável. É quem ele é, não sinal de que está
+            procurando vaga.
+
+            Todo campo aqui tem lastro na própria página ou no currículo: o
+            `worksFor` é a experiência atual, o `alumniOf` e o `hasCredential`
+            são a seção de Formação. Dado estruturado é afirmação, e uma
+            afirmação que a tela não sustenta é a primeira coisa que cai numa
+            entrevista técnica. */}
         <JsonLdScript
           scriptKey="person-profile"
           data={{
             "@context": "https://schema.org",
             "@type": "Person",
-            "@id": `${SITE_URL}/#person`,
+            "@id": PERSON_ID,
             name: SITE_NAME,
+            url: SITE_URL,
+            description,
+            image: `${SITE_URL}/portrait-square.webp`,
             jobTitle: lang === "en" ? ROLE_EN : ROLE,
+            worksFor: { "@type": "Organization", name: CURRENT_EMPLOYER },
+            alumniOf: { "@type": "CollegeOrUniversity", name: ALMA_MATER },
+            hasCredential: [
+              {
+                "@type": "EducationalOccupationalCredential",
+                name: TOP_CREDENTIAL,
+                credentialCategory: "certificate",
+                recognizedBy: {
+                  "@type": "CollegeOrUniversity",
+                  name: "Saïd Business School, University of Oxford",
+                },
+              },
+            ],
+            address: {
+              "@type": "PostalAddress",
+              addressLocality: "Duque de Caxias",
+              addressRegion: "RJ",
+              addressCountry: "BR",
+            },
             knowsAbout: [
               "Node.js",
               "TypeScript",
@@ -127,13 +160,13 @@ export function RootShell({
               "Docker",
               "Software Architecture",
               "Legacy System Migration",
+              "Process Automation",
+              "Retrieval-Augmented Generation",
+              "Vector Search",
+              "LLM Guardrails",
             ],
             knowsLanguage: ["pt-BR", "en"],
-            sameAs: [
-              "https://github.com/abelmagnag0",
-              "https://www.linkedin.com/in/abel-magnago1",
-            ],
-            url: SITE_URL,
+            sameAs,
           }}
         />
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />

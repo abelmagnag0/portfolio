@@ -57,7 +57,7 @@ export const experienceData: ExperienceRole[] = [
     key: 'cge',
     company: 'Controladoria-Geral do Estado do Rio de Janeiro',
     role: 'Engenheiro de Software',
-    line: 'Sistemas internos que auditor e servidor do estado usam todo dia.',
+    line: 'Sistemas internos que auditores e servidores usam todos os dias, incluindo o assistente de IA que responde sobre os documentos do órgão.',
     period: 'Mai 2023 – Atual',
     employment: 'Contrato, depois tempo integral',
     location: 'Rio de Janeiro · Híbrido',
@@ -78,7 +78,7 @@ export const experienceData: ExperienceRole[] = [
     translations: {
       en: {
         role: 'Software Engineer',
-        line: 'Internal systems that state auditors and civil servants use every day.',
+        line: "Internal systems state auditors and civil servants use every day, including the AI assistant that answers over the agency's documents.",
         period: 'May 2023 – Present',
         employment: 'Contract, then full-time',
         location: 'Rio de Janeiro · Hybrid',

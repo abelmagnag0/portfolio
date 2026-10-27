@@ -52,11 +52,11 @@ export const decisionNotes: DecisionNote[] = [
     section: 'credentials',
     title: 'O que dá para conferir.',
     body:
-      'Sem blog e sem palestra, o que sobra é o certificado com a instituição e a data. Teve um bloco de repositórios aqui e ele saiu: quem quer ver código vai no GitHub.',
+      'Sem blog e sem palestra, o que sobra é o certificado com a instituição e a data. Um bloco com meus repositórios já ficou aqui, mas quem quer ver código vai no GitHub, e o link está no fim da página.',
     en: {
       title: 'What you can check.',
       body:
-        'No blog and no talks, so what is left is the certificate with the institution and the date. There used to be a block of repositories here and it is gone: anyone who wants to see code goes to GitHub.',
+        'No blog and no talks, so what is left is the certificate with the institution and the date. A block with my repositories used to sit here, but anyone who wants to see code goes to GitHub, and the link is at the bottom of the page.',
     },
   },
   {

@@ -8,6 +8,11 @@ import { PROJECT_LOGOS, type ProjectLogo } from './logos.generated';
  * card com a tela e o selo do cliente; o detalhe abre sob clique
  * (`work-dossier.tsx`).
  *
+ * O texto do "o que eu fiz" é o que o recrutador lê quando o dossiê abre, e é
+ * onde a versão anterior perdia a força: listava as partes do cargo ("API,
+ * autenticação, front-end e deploy") em vez do objeto do trabalho. A regra
+ * agora é dizer o que foi construído, com o número quando ele existe.
+ *
  * PT-BR fica no topo de cada objeto; `translations.en` sobrescreve campo a
  * campo. Mesmo padrão de `experience.data.ts`.
  */
@@ -59,9 +64,9 @@ export const workData: WorkCase[] = [
     subtitle: 'Governo · controle interno',
     period: 'Mai 2023 – atual',
     problem:
-      'O fluxo de auditoria estava espalhado em três lugares: relatório num sistema, parecer jurídico em outro e controle de benefício em planilha. Para saber onde cada peça estava, alguém precisava lembrar.',
+      'O fluxo de auditoria estava espalhado em três lugares: relatório em um sistema, parecer jurídico em outro, controle de benefício em planilha. Para saber onde cada peça estava, alguém precisava lembrar.',
     role:
-      'Fiz o levantamento com auditores e jurídico, o modelo de dados, a API, a autenticação por perfil, o front-end e o deploy em container. Depois conduzi a migração do PHP para Node.js, que é a versão em uso.',
+      'Fiz o levantamento com auditores e jurídico, o modelo de dados, a API, a autenticação por perfil, o front-end e o deploy em container. Depois conduzi a migração do PHP para Node.js, que é a versão em uso. Também montei a camada de busca e os guardrails de um assistente de IA que responde perguntas sobre os documentos internos: corte do texto em blocos, busca vetorial no Qdrant, citação do arquivo de origem e validação da entrada.',
     outcomes: [
       {
         metric: 'PHP → Node.js',
@@ -70,6 +75,10 @@ export const workData: WorkCase[] = [
       {
         metric: 'SHA-256',
         text: 'Assinatura de documento com hash e histórico auditável.',
+      },
+      {
+        metric: 'Assistente de IA',
+        text: 'Responde sobre os documentos internos e cita o arquivo de origem.',
       },
       {
         metric: '4 áreas',
@@ -85,6 +94,7 @@ export const workData: WorkCase[] = [
       'EJS',
       'PostgreSQL',
       'MongoDB',
+      'Qdrant',
       'LDAP/SSO',
       'Docker',
       'CI/CD',
@@ -99,7 +109,7 @@ export const workData: WorkCase[] = [
         problem:
           'The audit workflow was spread across three places: reports in one system, legal opinions in another, benefit tracking in a spreadsheet. Finding each piece depended on someone remembering.',
         role:
-          'I did the requirements with auditors and legal, the data model, the API, role-based authentication, the front end and the container deploy. Then I led the migration from PHP to Node.js, which is the version in use.',
+          'I did the requirements with auditors and legal, the data model, the API, role-based authentication, the front end and the container deploy. Then I led the migration from PHP to Node.js, which is the version in use. I also built the retrieval and guardrail layer of an AI assistant that answers questions over internal documents: text chunking, vector search in Qdrant, citations back to the source file and request validation.',
         outcomes: [
           {
             metric: 'PHP → Node.js',
@@ -108,6 +118,10 @@ export const workData: WorkCase[] = [
           {
             metric: 'SHA-256',
             text: 'Document signing with hash and an auditable history.',
+          },
+          {
+            metric: 'AI assistant',
+            text: 'Answers over internal documents and cites the source file.',
           },
           {
             metric: '4 departments',
@@ -130,7 +144,7 @@ export const workData: WorkCase[] = [
     outcomes: [
       {
         metric: '1 núcleo',
-        text: 'Uma base só gerando escola com marca própria para cada franqueado.',
+        text: 'Uma base só gerando a escola de cada franqueado.',
       },
       {
         metric: '30 mil+',
@@ -160,7 +174,7 @@ export const workData: WorkCase[] = [
         outcomes: [
           {
             metric: '1 core',
-            text: 'One base generating branded schools for each franchise.',
+            text: "One base generating each franchise's school.",
           },
           {
             metric: '30k+',
@@ -181,7 +195,7 @@ export const workData: WorkCase[] = [
     subtitle: 'Educação · rede RAIZ',
     period: 'Jun 2024 – Dez 2025',
     problem:
-      'Coordenação pedagógica e comercial olhavam pedaços diferentes da mesma coisa: matrícula num sistema, financeiro em outro, indicador pedagógico em planilha.',
+      'Coordenação pedagógica e comercial olhavam pedaços diferentes da mesma coisa: matrícula em um sistema, financeiro em outro, indicador pedagógico em planilha.',
     role:
       'Liderei o front-end de uma plataforma com mais de 30 mil alunos ativos: backlog, pipeline do sprint ao release e a migração dos módulos legados que cortou 40% do tempo de build.',
     outcomes: [
@@ -303,7 +317,7 @@ export const workData: WorkCase[] = [
     subtitle: 'Consultoria · jurídico e auditoria',
     period: 'Mar 2025 – Set 2026',
     problem:
-      'Os sistemas de jurídico e auditoria viviam em legado fechado. Cada integração era um favor manual e o ponto de entrada técnico mudava a cada contrato.',
+      'Os sistemas de jurídico e auditoria viviam em legado fechado. Cada integração era um pedido manual e o ponto de entrada técnico mudava a cada contrato.',
     role:
       'Consultor full stack, em paralelo aos contratos de auditoria: desenvolvimento para jurídico e auditoria, contato técnico entre os times, integração com os sistemas legados e automação de processo. Tudo sobe em Docker, com CI/CD.',
     outcomes: [
@@ -333,7 +347,7 @@ export const workData: WorkCase[] = [
         subtitle: 'Consulting · legal & audit',
         period: 'Mar 2025 – Sep 2026',
         problem:
-          'The legal and audit systems lived on closed legacy software. Every integration was a manual favour, and the technical point of entry changed with each contract.',
+          'The legal and audit systems lived on closed legacy software. Every integration was a manual request, and the technical point of entry changed with each contract.',
         role:
           'Full-stack consultant, alongside the audit contracts: development for legal and audit, technical contact between teams, integration with the legacy systems and process automation. Everything ships in Docker, with CI/CD.',
         outcomes: [

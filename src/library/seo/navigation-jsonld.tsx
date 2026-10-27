@@ -14,20 +14,20 @@ export function NavigationJsonLd({ lang = "pt-BR" }: { lang?: Lang }) {
 
   const navItems = [
     { name: en ? "Home" : "Início", alternateName: en ? "Início" : "Home", hash: "#home" },
-    { name: en ? "Work" : "Cases", alternateName: en ? "Cases" : "Work", hash: "#work" },
+    { name: en ? "Projects" : "Projetos", alternateName: en ? "Projetos" : "Projects", hash: "#work" },
     {
-      name: en ? "Track record" : "Trajetória",
-      alternateName: en ? "Trajetória" : "Track record",
+      name: en ? "Experience" : "Experiência",
+      alternateName: en ? "Experiência" : "Experience",
       hash: "#experience",
     },
     {
-      name: en ? "Credentials" : "Credenciais",
-      alternateName: en ? "Credenciais" : "Credentials",
+      name: en ? "Education" : "Formação",
+      alternateName: en ? "Formação" : "Education",
       hash: "#credentials",
     },
     {
-      name: en ? "How I work" : "Como trabalho",
-      alternateName: en ? "Como trabalho" : "How I work",
+      name: en ? "Stack" : "Stack",
+      alternateName: en ? "Stack" : "Stack",
       hash: "#capabilities",
     },
     { name: en ? "Contact" : "Contato", alternateName: en ? "Contato" : "Contact", hash: "#contact" },

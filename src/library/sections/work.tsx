@@ -28,8 +28,9 @@ import { getWorkCopy, workData } from './work.data';
  *
  *  - O card inteiro é um `<button>` (ver `work-board.tsx`), não um link: não
  *    há URL de dossiê neste site estático. Isso mantém a grade como HTML
- *    estático — o texto do título e do cliente fica no documento para o
- *    buscador e para quem navega por teclado.
+ *    estático — o título e o cliente ficam no documento, e o dossiê inteiro
+ *    acompanha num bloco `sr-only` ao lado do botão (ver o comentário lá
+ *    embaixo, perto do `<li>`), para o buscador e para quem navega por teclado.
  *
  *  - O selo do cliente fica sobre uma chapa branca. As logos são opacas, de
  *    fundo branco (a marca ocupava 5–18% de um quadrado 320×320); a chapa é o
@@ -55,6 +56,7 @@ export function WorkSection({ lang }: { lang: Lang }) {
             {workData.map((item) => {
               const c = getWorkCopy(item, lang);
               const cover = item.gallery?.[0];
+              const stack = lang === 'en' && item.stack_en ? item.stack_en : item.stack;
 
               return (
                 <li key={item.key} id={`work-${item.key}`} className="scroll-mt-24">
@@ -115,6 +117,35 @@ export function WorkSection({ lang }: { lang: Lang }) {
                       </span>
                     </div>
                   </button>
+
+                  {/* O dossiê inteiro também fica no documento, e não só no
+                      chunk que o `import()` traz ao clique. O motivo é de
+                      busca: o texto que mais interessa a um recrutador (o
+                      problema, o que eu fiz, o resultado) só existia depois do
+                      JS, então um crawler que não executa script não via nada
+                      além do título e do nome do cliente.
+
+                      O mesmo conteúdo que o painel mostra, com o mesmo
+                      `getWorkCopy`, dentro do `<li>` e fora do `<button>` (um
+                      `<button>` só aceita conteúdo de frase; blocos ali dentro
+                      seriam HTML inválido). `sr-only` esconde da tela sem
+                      esconder do robô: `display:none` some para os dois, e
+                      `clip-path` some só para os olhos. É o padrão de um
+                      acordeão fechado, que o Google indexa. O visitante que
+                      abre o painel continua lendo exatamente isto. */}
+                  <div className="sr-only" data-work-index={item.key}>
+                    <p>{`${c.title}. ${c.subtitle}. ${c.period}.`}</p>
+                    <p>{`${item.client}${item.via ? `, ${item.via}` : ''}.`}</p>
+                    <p>{`${copy.role_label}: ${c.role}`}</p>
+                    <ul>
+                      <li>{copy.outcome_label}</li>
+                      {c.outcomes.map((o) => (
+                        <li key={o.metric}>{`${o.metric}: ${o.text}`}</li>
+                      ))}
+                    </ul>
+                    <p>{`${copy.stack_label}: ${stack.join(', ')}`}</p>
+                    <p>{c.problem}</p>
+                  </div>
                 </li>
               );
             })}

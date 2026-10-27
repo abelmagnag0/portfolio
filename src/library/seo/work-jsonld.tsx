@@ -29,6 +29,11 @@ export function WorkJsonLd({ work, lang = "pt-BR" }: Props) {
         headline: copy.title,
         abstract: copy.problem,
         about: copy.subtitle,
+        // A stack também entra como palavra-chave: é o termo que o buscador
+        // indexa quando alguém procura "Node.js" ou "PostgreSQL" junto do
+        // nome do cliente — e é o mesmo vocabulário que um ATS procura.
+        keywords: (lang === "en" && item.stack_en ? item.stack_en : item.stack).join(", "),
+        inLanguage: lang === "en" ? "en" : "pt-BR",
         creator: { "@type": "Person", name: "Abel Magnago", url: SITE_URL },
       },
     } as const;

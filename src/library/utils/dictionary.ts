@@ -10,6 +10,13 @@
  * Frase curta, substantivo concreto, nenhum "impacto", "entrega", "melhoria" ou
  * "solução". Nada de numeração de página, escala de impressão ou coordenada:
  * isso era enfeite de revista, não informação.
+ *
+ * Regra editorial (2026-10-26, segunda passada): quem lê tem que entender, numa
+ * passada só, o que a pessoa fez e onde. Frase como "faço o back-end, o
+ * front-end e o deploy" lista partes de um cargo; o que fica na cabeça é o
+ * objeto concreto ("sistemas que auditor usa todo dia", "do banco de dados à
+ * tela"). Também nada de em dash: a frase se resolve com vírgula, ponto ou
+ * dois-pontos.
  */
 export type Lang = 'pt-BR' | 'en';
 
@@ -169,11 +176,11 @@ export const dictionary: Record<Lang, LangDictionary> = {
     cover: {
       role: 'Engenheiro de Software · Rio de Janeiro',
       intro:
-        'Trabalho com sistemas web desde 2021. Faço o back-end, o front-end e o deploy, e hoje estou na Controladoria-Geral do Estado do Rio de Janeiro.',
+        'Sou engenheiro de software no Rio de Janeiro. Desde 2021, construo sistemas web em Node.js, TypeScript, React e AWS, do banco de dados à tela. Hoje trabalho na Controladoria-Geral do Estado do Rio de Janeiro.',
       scroll: 'Ver projetos',
     },
     hero: {
-      lead: 'Comecei em 2021 como estagiário de QA na Prodígio Educação. Depois vieram três produtos de ensino, uma consultoria de jurídico e auditoria e, desde 2023, a Controladoria-Geral do Estado. No dia a dia, Node.js, TypeScript, React e AWS.',
+      lead: 'Comecei em 2021 como estagiário de QA na Prodígio Educação. Depois vieram três produtos de ensino, uma consultoria em jurídico e auditoria e, desde 2023, a Controladoria-Geral do Estado do Rio de Janeiro. No dia a dia, Node.js, TypeScript, React e AWS. Também construí a camada de busca e os guardrails de um assistente de IA que responde perguntas sobre documentos internos.',
       cta_work: 'Ver projetos',
       cta_contact: 'Falar comigo',
       note: 'Rio de Janeiro · remoto',
@@ -182,7 +189,7 @@ export const dictionary: Record<Lang, LangDictionary> = {
     work: {
       title: 'Projetos',
       subtitle:
-        'Produto interno e regulado, quase sempre sob NDA. Cada card abre com o problema, o que eu fiz e o resultado.',
+        'Sistemas internos e regulados, quase sempre sob NDA. Cada um abre com o problema, o que eu fiz e o resultado.',
       role_label: 'O que eu fiz',
       stack_label: 'Stack',
       outcome_label: 'Resultado',
@@ -195,11 +202,11 @@ export const dictionary: Record<Lang, LangDictionary> = {
     },
     experience: {
       title: 'Experiência',
-      subtitle: 'Datas que se repetem são contratos simultâneos.',
+      subtitle: 'Datas que se repetem são contratos em paralelo.',
     },
     credentials: {
       title: 'Formação',
-      subtitle: 'Cursos, certificados e idiomas.',
+      subtitle: 'Cursos, certificados e idiomas, com a instituição e a data.',
       groups: [
         {
           label: 'Certificados',
@@ -227,13 +234,13 @@ export const dictionary: Record<Lang, LangDictionary> = {
       groups: [
         {
           name: 'Interface',
-          line: 'React, Next.js e TypeScript no front-end. Tela acessível e que funciona em conexão ruim.',
+          line: 'React, Next.js e TypeScript no front-end. Tela que abre rápido em conexão ruim e funciona no teclado.',
           tools: ['React', 'Next.js', 'TypeScript', 'Tailwind CSS', 'Radix UI', 'Styled-components', 'Storybook', 'Vite'],
         },
         {
           name: 'IA',
-          line: 'Uso IA todos os dias, em cima de código que eu escrevo e reviso. Também escrevi meu próprio agente de código.',
-          tools: ['LLMs', 'MCP', 'Agentes de código', 'Node.js', 'TypeScript'],
+          line: 'Uso IA todo dia, em cima de código que eu escrevo e reviso. No trabalho, construí a camada de busca e os guardrails de um assistente que responde sobre documentos internos. Também escrevi meu próprio agente de código.',
+          tools: ['LLMs', 'RAG', 'Qdrant', 'MCP', 'Agentes de código', 'Node.js', 'TypeScript'],
         },
         {
           name: 'Back-end',
@@ -293,7 +300,7 @@ export const dictionary: Record<Lang, LangDictionary> = {
       toggle_off_title: 'Mostrar as notas',
       tour_why: 'Por que estou vendo isso?',
       tour_intro:
-        'Cada seção tem uma decisão por trás. Estas notas contam o que eu escolhi e por quê. Aparecem uma vez. Quer parar de ver?',
+        'Cada seção tem uma decisão por trás. Estas notas contam o que eu escolhi e por quê. Dá para desligar quando quiser.',
       tour_stop: 'Parar de ver',
       tour_keep: 'Deixo ligado',
       tour_prev: 'Anterior',
@@ -323,11 +330,11 @@ export const dictionary: Record<Lang, LangDictionary> = {
     cover: {
       role: 'Software Engineer · Rio de Janeiro',
       intro:
-        "I've been building web systems since 2021. I do the back end, the front end and the deploy, and I'm currently at the Rio de Janeiro State Comptroller's Office.",
+        "I'm a software engineer in Rio de Janeiro. Since 2021 I've been building web systems in Node.js, TypeScript, React and AWS, from the database to the screen. Today I work at the Rio de Janeiro State Comptroller's Office.",
       scroll: 'See projects',
     },
     hero: {
-      lead: "I started in 2021 as a QA intern at Prodígio Educação. Then came three education products, a legal and audit consultancy and, since 2023, the State Comptroller's Office. Day to day it's Node.js, TypeScript, React and AWS.",
+      lead: "I started in 2021 as a QA intern at Prodígio Educação. Then came three education products, a legal and audit consultancy and, since 2023, the Rio de Janeiro State Comptroller's Office. Day to day it's Node.js, TypeScript, React and AWS. I also built the retrieval and guardrail layer of an AI assistant that answers questions over internal documents.",
       cta_work: 'See projects',
       cta_contact: 'Get in touch',
       note: 'Rio de Janeiro · remote',
@@ -336,7 +343,7 @@ export const dictionary: Record<Lang, LangDictionary> = {
     work: {
       title: 'Projects',
       subtitle:
-        'Internal, regulated product, almost always under NDA. Each card opens with the problem, what I did and the result.',
+        'Internal, regulated systems, almost always under NDA. Each one opens with the problem, what I did and the result.',
       role_label: 'What I did',
       stack_label: 'Stack',
       outcome_label: 'Result',
@@ -353,7 +360,7 @@ export const dictionary: Record<Lang, LangDictionary> = {
     },
     credentials: {
       title: 'Education',
-      subtitle: 'Courses, certificates and languages.',
+      subtitle: 'Courses, certificates and languages, with the institution and the date.',
       groups: [
         {
           label: 'Certificates',
@@ -381,13 +388,13 @@ export const dictionary: Record<Lang, LangDictionary> = {
       groups: [
         {
           name: 'Interface',
-          line: 'React, Next.js and TypeScript on the front end. Accessible screens that hold up on a bad connection.',
+          line: 'React, Next.js and TypeScript on the front end. Screens that load fast on a bad connection and work from the keyboard.',
           tools: ['React', 'Next.js', 'TypeScript', 'Tailwind CSS', 'Radix UI', 'Styled-components', 'Storybook', 'Vite'],
         },
         {
           name: 'AI',
-          line: 'I use AI every day, on code I write and review myself. I also wrote my own coding agent.',
-          tools: ['LLMs', 'MCP', 'Coding agents', 'Node.js', 'TypeScript'],
+          line: 'I use AI every day, on code I write and review myself. At work I built the retrieval and guardrail layer of an assistant that answers over internal documents. I also wrote my own coding agent.',
+          tools: ['LLMs', 'RAG', 'Qdrant', 'MCP', 'Coding agents', 'Node.js', 'TypeScript'],
         },
         {
           name: 'Backend',
@@ -447,7 +454,7 @@ export const dictionary: Record<Lang, LangDictionary> = {
       toggle_off_title: 'Show the notes',
       tour_why: 'Why am I seeing this?',
       tour_intro:
-        'Each section has one decision behind it. These notes say what I chose and why. They show once. Want to stop seeing them?',
+        'Each section has a decision behind it. These notes say what I chose and why. You can turn them off whenever you want.',
       tour_stop: 'Stop seeing them',
       tour_keep: 'Keep them on',
       tour_prev: 'Previous',
