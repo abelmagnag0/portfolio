@@ -7,10 +7,14 @@
  * só o hash vai na URL de autorização. Nenhuma senha passa por este código —
  * a tela de e-mail/senha/TOTP é a hosted UI do Cognito.
  *
- * O que fica no `sessionStorage`:
- *   - o par verifier/state do login em andamento (some assim que o code é
- *     trocado);
- *   - os tokens da sessão, para sobreviver a um recarregamento de página.
+ * O que fica guardado no navegador:
+ *   - no `sessionStorage`, o par verifier/state do login em andamento — vale
+ *     só para esta aba e some assim que o code é trocado;
+ *   - no `localStorage`, os tokens da sessão. O `sessionStorage` é apagado
+ *     quando a aba fecha, o que obrigava a fazer senha + TOTP toda vez. Com o
+ *     refresh token de 30 dias e rotação ligada, o acesso dura sem virar
+ *     permanente: `Sair` revoga o token no Cognito, e uma cópia reutilizada
+ *     fora da janela de tolerância derruba a cadeia inteira.
  * A sessão do Cognito em si (o cookie da hosted UI) é gerenciada por ele.
  */
 
@@ -43,6 +47,32 @@ const CONFIG_KEY = "portfolio.admin.config";
 // Renova um pouco antes de vencer, para uma requisição não cair no meio da
 // troca de token.
 const REFRESH_MARGIN_MS = 60_000;
+
+// `localStorage` pode lançar (modo privado, política de terceiros, cota).
+// O painel continua funcionando sem persistência; só volta a pedir login.
+function readStored(key: string): string | null {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeStored(key: string, value: string): void {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // sem armazenamento a sessão não sobrevive ao próximo carregamento
+  }
+}
+
+function removeStored(key: string): void {
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    // nada a fazer
+  }
+}
 
 function base64Url(bytes: Uint8Array): string {
   let binary = "";
@@ -128,10 +158,17 @@ export async function fetchConfig(apiBase = ""): Promise<CognitoConfig | null> {
 
 export function loadSession(): Session | null {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
+    const raw = readStored(SESSION_KEY);
     if (!raw) return null;
     const session = JSON.parse(raw) as Partial<Session>;
-    if (!session.accessToken || !session.refreshToken || !session.expiresAt) {
+    // Sem refresh token a sessão morre junto com o access token em 8h; é
+    // melhor pedir login agora do que abrir o painel e vê-lo falhar no meio.
+    if (
+      !session.accessToken ||
+      !session.refreshToken ||
+      !session.expiresAt ||
+      !Number.isFinite(session.expiresAt)
+    ) {
       return null;
     }
     return session as Session;
@@ -141,12 +178,16 @@ export function loadSession(): Session | null {
 }
 
 export function saveSession(session: Session): void {
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  writeStored(SESSION_KEY, JSON.stringify(session));
 }
 
 export function clearSession(): void {
-  sessionStorage.removeItem(SESSION_KEY);
-  sessionStorage.removeItem(PKCE_KEY);
+  removeStored(SESSION_KEY);
+  try {
+    sessionStorage.removeItem(PKCE_KEY);
+  } catch {
+    // nada a fazer
+  }
 }
 
 function toSession(body: TokenResponse): Session | null {
@@ -188,31 +229,83 @@ async function postToken(
 }
 
 /**
- * Troca o refresh token por um access token novo. Devolve `null` se o Cognito
- * recusar (sessão revogada, refresh token vencido etc.).
+ * Troca o refresh token por tokens novos. Devolve `null` se o Cognito recusar
+ * (sessão revogada, refresh token vencido etc.) ou se a rede falhar.
+ *
+ * Duas abas do painel podem renovar ao mesmo tempo. Com a rotação ligada,
+ * reusar o refresh token antigo depois da janela de tolerância faz o Cognito
+ * tratar o pedido como vazamento e derrubar a sessão — por isso a renovação
+ * passa por um lock entre abas e, antes de chamar o Cognito, reaproveita a
+ * sessão que outra aba já gravou.
  */
 export async function refreshSession(
   config: CognitoConfig,
   current: Session,
 ): Promise<Session | null> {
-  if (!current.refreshToken) return null;
+  try {
+    if (typeof navigator !== "undefined" && navigator.locks) {
+      return await navigator.locks.request("portfolio.admin.refresh", () =>
+        refreshLocked(config, current),
+      );
+    }
+    return await refreshLocked(config, current);
+  } catch {
+    return null;
+  }
+}
+
+async function refreshLocked(
+  config: CognitoConfig,
+  current: Session,
+): Promise<Session | null> {
+  const stored = loadSession();
+  if (stored && !sessionExpiresSoon(stored)) return stored;
+
+  // A sessão guardada é a mais nova. `current` pode estar defasada numa aba
+  // que ficou aberta por horas: usar o refresh token dela depois da janela de
+  // tolerância faz o Cognito tratar como reuso e revogar a cadeia inteira.
+  const refreshToken = stored?.refreshToken ?? current.refreshToken;
+  if (!refreshToken) return null;
 
   const { session } = await postToken(config, {
     grant_type: "refresh_token",
     client_id: config.clientId,
-    refresh_token: current.refreshToken,
+    refresh_token: refreshToken,
   });
 
   if (!session) return null;
 
-  // O Cognito normalmente não devolve outro refresh token na renovação; o
-  // antigo continua valendo até o limite configurado no client.
+  // Com rotação ligada o Cognito devolve um refresh token novo; sem rotação,
+  // o antigo continua valendo até o limite configurado no client.
   const next: Session = {
     ...session,
-    refreshToken: session.refreshToken || current.refreshToken,
+    refreshToken: session.refreshToken || refreshToken,
   };
   saveSession(next);
   return next;
+}
+
+/**
+ * Revoga o refresh token no Cognito. O logout local já apaga a cópia do
+ * navegador; revogar impede que uma cópia capturada antes continue renovando
+ * a sessão pelos 30 dias de validade. Best-effort: se a rede falhar, o logout
+ * acontece do mesmo jeito.
+ */
+export async function revokeRefreshToken(
+  config: CognitoConfig,
+  token: string,
+): Promise<void> {
+  try {
+    await fetch(`https://${config.cognitoHost}/oauth2/revoke`, {
+      method: "POST",
+      // `keepalive` faz a requisição sobreviver ao redirecionamento do logout.
+      keepalive: true,
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ token, client_id: config.clientId }),
+    });
+  } catch {
+    // best-effort
+  }
 }
 
 export function sessionExpiresSoon(session: Session): boolean {

@@ -77,9 +77,11 @@ Resources:
       UserPoolId: !Ref AdminUserPool
       GenerateSecret: false
       # Sem `client_credentials` nem senha: só o fluxo de código com PKCE.
+      # `ALLOW_REFRESH_TOKEN_AUTH` sai porque é incompatível com a rotação de
+      # refresh token ligada abaixo; a renovação usa `/oauth2/token`, que não
+      # depende desse fluxo.
       ExplicitAuthFlows:
         - ALLOW_USER_SRP_AUTH
-        - ALLOW_REFRESH_TOKEN_AUTH
       AllowedOAuthFlowsUserPoolClient: true
       AllowedOAuthFlows:
         - code
@@ -107,16 +109,24 @@ Resources:
         - http://localhost:3000/admin
         - http://localhost:3100/admin
         - http://localhost:4321/admin
-      # 8 horas de access token, igual ao que o token antigo durava. O refresh
-      # token fica em 1 dia: quem fecha o navegador volta pelo login completo
-      # (senha + TOTP), e um refresh vazado não vale por um mês.
+      # 8 horas de access token. O refresh token fica em 30 dias: o navegador
+      # guarda a sessão em `localStorage`, então fechar a aba não obriga a fazer
+      # senha + TOTP de novo. A janela é fixa — a rotação não estende o prazo,
+      # então a cada 30 dias o login completo volta a ser exigido.
       AccessTokenValidity: 8
       IdTokenValidity: 8
-      RefreshTokenValidity: 1
+      RefreshTokenValidity: 30
       TokenValidityUnits:
         AccessToken: hours
         IdToken: hours
         RefreshToken: days
+      # Cada renovação devolve um refresh token novo e invalida o anterior. Se
+      # uma cópia for usada fora da janela abaixo, o Cognito derruba a cadeia
+      # inteira em vez de deixar a cópia valendo pelos 30 dias. Os 60 segundos
+      # de tolerância cobrem duas abas renovando quase ao mesmo tempo.
+      RefreshTokenRotation:
+        Feature: ENABLED
+        RetryGracePeriodSeconds: 60
       # Erros genéricos no login: não revela se o e-mail existe no pool.
       PreventUserExistenceErrors: ENABLED
       EnableTokenRevocation: true

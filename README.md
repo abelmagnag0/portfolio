@@ -202,7 +202,9 @@ proxied by CloudFront.
   reply-to, so a header can't be injected.
 - **Admin.** `/admin` is a static client-side page that signs in through Cognito
   (Authorization Code + PKCE) and calls the API with the access token. TOTP is
-  required, and the page is `noindex` and disallowed in `robots.txt`.
+  required, and the page is `noindex` and disallowed in `robots.txt`. The
+  session lasts 30 days per browser: the refresh token lives in `localStorage`,
+  rotates on every renewal, and is revoked on sign-out.
 
 Handler sources live in `backend/` and are bundled by `scripts/build-api.mjs`
 (esbuild) into `dist-api/`, which is the only thing Serverless packages.
@@ -247,6 +249,8 @@ first-time setup below covers that.
 - CloudFront redirects viewers to HTTPS and serves TLS 1.2_2021 minimum.
 - Admin: password (12+ chars) **and** mandatory TOTP. The pool allows no
   self-signup. The gateway's JWT authorizer runs before any admin Lambda.
+  Sessions last 30 days per browser, with refresh-token rotation and a 60 s
+  reuse grace; signing out revokes the refresh token server-side.
 - Analytics stores no IP address; events self-delete after 400 days.
 - The contact endpoint has a honeypot and normalises input against header
   injection.

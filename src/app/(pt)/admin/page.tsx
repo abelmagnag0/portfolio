@@ -15,6 +15,7 @@ import {
   loadSession,
   logoutUrl,
   refreshSession,
+  revokeRefreshToken,
   sessionExpiresSoon,
   startLogin,
 } from "@/library/admin/cognito";
@@ -162,14 +163,21 @@ export default function AdminPage() {
     setAuthError("Sua sessão expirou. Entre de novo.");
   }, []);
 
-  /** Sair de verdade: encerra também a sessão do Cognito (o cookie da hosted UI). */
+  /**
+   * Sair de verdade: revoga o refresh token, apaga a cópia local e encerra
+   * também a sessão do Cognito (o cookie da hosted UI).
+   */
   const logout = React.useCallback(() => {
+    if (config && session?.refreshToken) {
+      // Sem revogar, uma cópia do token continuaria válida pelos 30 dias.
+      void revokeRefreshToken(config, session.refreshToken);
+    }
     clearSession();
     setSession(null);
     setStats(null);
     setLeads([]);
     if (config) window.location.assign(logoutUrl(config));
-  }, [config]);
+  }, [config, session]);
 
   /**
    * Primeiro carregamento. A ordem importa: se a URL traz `?code=...`, a
@@ -218,33 +226,57 @@ export default function AdminPage() {
   }, []);
 
   const load = React.useCallback(
-    async (token: string, d: number) => {
-      setLoading(true);
-      try {
-        const [statsRes, leadsRes] = await Promise.all([
+    async (current: Session, d: number): Promise<Session | null> => {
+      const request = (token: string) =>
+        Promise.all([
           apiFetch(`/api/admin/stats?days=${d}`, token),
           apiFetch(`/api/admin/leads?limit=100`, token),
         ]);
+
+      setLoading(true);
+      try {
+        let [statsRes, leadsRes] = await request(current.accessToken);
+
+        // 401 pode ser só o access token vencendo com a aba parada. Tenta
+        // renovar uma vez antes de derrubar a sessão; se o refresh também
+        // falhar, aí sim o login é necessário.
         if (statsRes.status === 401 || leadsRes.status === 401) {
-          expireSession();
-          return;
+          if (!config) {
+            expireSession();
+            return null;
+          }
+          const refreshed = await refreshSession(config, current);
+          if (!refreshed) {
+            expireSession();
+            return null;
+          }
+          current = refreshed;
+          setSession(refreshed);
+          [statsRes, leadsRes] = await request(refreshed.accessToken);
+          if (statsRes.status === 401 || leadsRes.status === 401) {
+            expireSession();
+            return null;
+          }
         }
+
         if (!statsRes.ok || !leadsRes.ok) {
           // Erro de backend (ex.: 500): mantém os dados anteriores e evita
           // renderizar um objeto incompleto que quebraria o painel.
-          return;
+          return current;
         }
         const statsJson = (await statsRes.json()) as Stats;
         const leadsJson = (await leadsRes.json()) as { leads: Lead[] };
         setStats(statsJson);
         setLeads(leadsJson.leads || []);
+        return current;
       } catch {
         // mantém a tela como está
+        return current;
       } finally {
         setLoading(false);
       }
     },
-    [expireSession],
+    [config, expireSession],
   );
 
   // Com sessão em mãos: renova o access token se estiver perto de vencer e só
@@ -254,20 +286,24 @@ export default function AdminPage() {
     let cancelled = false;
 
     void (async () => {
-      let current = session;
+      const current = session;
 
       if (sessionExpiresSoon(current) && config) {
         const refreshed = await refreshSession(config, current);
         if (cancelled) return;
-        if (!refreshed) {
-          expireSession();
+        if (refreshed) {
+          // O efeito roda de novo com a sessão nova e faz a busca lá.
+          setSession(refreshed);
           return;
         }
-        current = refreshed;
-        setSession(refreshed);
+        // Falhou renovar (rede instável, por exemplo). Tenta buscar com o token
+        // atual: se a API recusar, o próprio `load` decide pelo logout.
       }
 
-      await load(current.accessToken, days);
+      const next = await load(current, days);
+      if (!cancelled && next && next.accessToken !== session.accessToken) {
+        setSession(next);
+      }
     })();
 
     return () => {
@@ -275,15 +311,51 @@ export default function AdminPage() {
     };
   }, [session, config, days, load, expireSession]);
 
+  // Abas em segundo plano têm timers throttlados; ao voltar, o access token
+  // pode já ter vencido. Renova na hora em vez de esperar a próxima ação.
+  React.useEffect(() => {
+    if (!session || !config) return;
+
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      if (!sessionExpiresSoon(session)) return;
+      void refreshSession(config, session).then((refreshed) => {
+        if (refreshed) setSession(refreshed);
+      });
+    };
+
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [session, config]);
+
   const setLeadStatus = async (lead: Lead, status: Lead["status"]) => {
     if (!session) return;
     setLeads((prev) => prev.map((l) => (l.sk === lead.sk ? { ...l, status } : l)));
-    try {
-      await apiFetch("/api/admin/leads", session.accessToken, {
+
+    const send = (token: string) =>
+      apiFetch("/api/admin/leads", token, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ sk: lead.sk, status }),
       });
+
+    try {
+      let res = await send(session.accessToken);
+
+      // Mesma lógica do load: um 401 pode ser só o access token vencido.
+      if (res.status === 401 && config) {
+        const refreshed = await refreshSession(config, session);
+        if (refreshed) {
+          setSession(refreshed);
+          res = await send(refreshed.accessToken);
+        }
+      }
+
+      if (res.status === 401) {
+        expireSession();
+        return;
+      }
+      if (!res.ok) throw new Error(`PATCH ${res.status}`);
     } catch {
       setLeads((prev) => prev.map((l) => (l.sk === lead.sk ? { ...l, status: lead.status } : l)));
     }
