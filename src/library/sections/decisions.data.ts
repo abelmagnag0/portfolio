@@ -8,7 +8,14 @@
  */
 export type DecisionNote = {
   /** ID da seção: casa com o `id` do `<section>`. */
-  section: 'home' | 'work' | 'experience' | 'credentials' | 'capabilities' | 'contact';
+  section:
+    | 'home'
+    | 'work'
+    | 'experience'
+    | 'credentials'
+    | 'capabilities'
+    | 'source'
+    | 'contact';
   title: string;
   body: string;
   en?: { title: string; body: string };
@@ -52,11 +59,11 @@ export const decisionNotes: DecisionNote[] = [
     section: 'credentials',
     title: 'O que dá para conferir.',
     body:
-      'Sem blog e sem palestra, o que sobra é o certificado com a instituição e a data. Um bloco com meus repositórios já ficou aqui, mas quem quer ver código vai no GitHub, e o link está no fim da página.',
+      'Sem blog e sem palestra, o que sobra é o certificado com a instituição e a data. Uma lista dos meus repositórios já ficou aqui; ela saiu, e no lugar entrou o repositório deste site, logo abaixo da stack.',
     en: {
       title: 'What you can check.',
       body:
-        'No blog and no talks, so what is left is the certificate with the institution and the date. A block with my repositories used to sit here, but anyone who wants to see code goes to GitHub, and the link is at the bottom of the page.',
+        'No blog and no talks, so what is left is the certificate with the institution and the date. A list of my repositories used to sit here; it came out, and the repository for this site took its place, just below the stack.',
     },
   },
   {
@@ -68,6 +75,17 @@ export const decisionNotes: DecisionNote[] = [
       title: 'Area, not a technology list.',
       body:
         'The old section was four identical cards, each with three technologies. "React, Node, AWS" already shows up in the projects. What matters is what I use in each area, and the technologies sit in the caption.',
+    },
+  },
+  {
+    section: 'source',
+    title: 'O site é o próprio exemplo.',
+    body:
+      'A seção mostra o repositório que gera esta página: a API, a infraestrutura e o painel no mesmo lugar. Um portfólio que afirma uma stack e não deixa ninguém abrir o código pede confiança; este abre. O tour, o analytics e o formulário também rodam em cima dele.',
+    en: {
+      title: 'The site is its own example.',
+      body:
+        'The section points to the repository that builds this page: the API, the infrastructure and the panel in one place. A portfolio that claims a stack and lets nobody open the code asks for trust; this one opens. The tour, the analytics and the contact form all run on it too.',
     },
   },
   {

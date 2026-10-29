@@ -373,7 +373,10 @@
    em papel.
 
    Hoje a faixa alterna a partir dos cases: cases(papel) · trajetória(banda) ·
-   credenciais(papel) · capacidades(banda) · contato(papel) · rodapé(banda). */
+   credenciais(papel) · capacidades(banda) · código(papel) · contato(papel) ·
+   rodapé(banda). Código e contato ficam os dois em papel porque o contato tem
+   painel pintado e não pode virar banda; a seção de código encosta nele sem
+   degrau, e a separação fica por conta do fio de 1px. */
 @utility band {
   background-color: var(--paper-raised);
 }

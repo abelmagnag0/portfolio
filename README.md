@@ -107,6 +107,10 @@ The site is laid out as a **document**, not a landing page:
 - Each section carries a **decision note**: a small floating annotation (built
   with `driver.js`) that says what was chosen and why. It can be turned off, and
   it stays off.
+- One section points at **this repository**: the page, the API, the
+  infrastructure and the admin panel live in the same public repo, so a claim
+  made on the site can be read in the code behind it. The site is its own
+  example.
 
 ## Art direction
 

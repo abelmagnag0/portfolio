@@ -84,6 +84,7 @@ export type NavCopy = {
   experience: string;
   credentials: string;
   capabilities: string;
+  source: string;
   contact: string;
   download_cv: string;
   switch_language_title: string;
@@ -116,6 +117,29 @@ export type CapabilitiesCopy = {
   title: string;
   subtitle: string;
   groups: Capability[];
+};
+
+type SourceEntry = { label: string; line: string };
+type SourceTreeNode = { path: string; note: string };
+
+/**
+ * "O código deste site" — a seção que leva ao repositório público.
+ *
+ * Existe para quem quer conferir em vez de acreditar: diz o que está lá dentro
+ * e aponta para o mesmo repositório que gera a página. O tom é de ficha, não
+ * de anúncio — rótulo curto, uma linha por parte.
+ */
+export type SourceCopy = {
+  title: string;
+  subtitle: string;
+  entries: SourceEntry[];
+  repo_label: string;
+  repo_visibility: string;
+  repo_stack: string;
+  tree_label: string;
+  tree: SourceTreeNode[];
+  cta: string;
+  readme_note: string;
 };
 
 export type FooterCopy = {
@@ -155,6 +179,7 @@ export type LangDictionary = {
   experience: ExperienceCopy;
   credentials: CredentialsCopy;
   capabilities: CapabilitiesCopy;
+  source: SourceCopy;
   contact: ContactCopy;
   footer: FooterCopy;
   decisions: DecisionsCopy;
@@ -167,6 +192,7 @@ export const dictionary: Record<Lang, LangDictionary> = {
       experience: 'Experiência',
       credentials: 'Formação',
       capabilities: 'Stack',
+      source: 'Código',
       contact: 'Contato',
       download_cv: 'Baixar CV',
       switch_language_title: 'Mudar para inglês',
@@ -264,6 +290,46 @@ export const dictionary: Record<Lang, LangDictionary> = {
         },
       ],
     },
+    source: {
+      title: 'O código deste site',
+      subtitle:
+        'A página, a API, a infraestrutura e o painel estão no mesmo repositório público. Dá para ler tudo o que este site afirma.',
+      entries: [
+        {
+          label: 'Página',
+          line: 'Next.js 15 com export estático. Sem servidor de aplicação: o HTML sai do build e vive no S3.',
+        },
+        {
+          label: 'API',
+          line: 'Cinco funções Lambda em Node.js. O formulário grava no DynamoDB antes de tentar o e-mail, então o lead não se perde se o SES falhar.',
+        },
+        {
+          label: 'Infra',
+          line: 'CloudFormation escrito como recursos do Serverless Framework: CloudFront, API Gateway, tabelas, Cognito, S3 e DNS no mesmo deploy.',
+        },
+        {
+          label: 'Painel',
+          line: 'Login no Cognito com TOTP obrigatório. As rotas de admin são barradas no API Gateway antes de chegar na função.',
+        },
+        {
+          label: 'IA',
+          line: 'Desde 2025, boa parte do que eu escrevo é com IA do lado: Claude, Copilot, Qwen, DeepSeek, MiniMax, todos por terminal. Eu reviso e reescrevo o que entra.',
+        },
+      ],
+      repo_label: 'Repositório',
+      repo_visibility: 'Público',
+      repo_stack: 'Next.js · TypeScript · Node.js · Serverless Framework · AWS',
+      tree_label: 'O que tem dentro',
+      tree: [
+        { path: 'src/', note: 'interface, seções e textos' },
+        { path: 'backend/', note: 'Lambda do contato, das métricas e do painel' },
+        { path: 'sls/', note: 'CloudFront, DNS, S3, tabelas e Cognito' },
+        { path: 'scripts/', note: 'build, publicação e admin' },
+      ],
+      cta: 'Abrir no GitHub',
+      readme_note:
+        'O README tem a arquitetura e o porquê de cada serviço. É por onde eu começaria.',
+    },
     contact: {
       title: 'Contato',
       subtitle: 'Me conta o que você precisa e onde está travando.',
@@ -321,6 +387,7 @@ export const dictionary: Record<Lang, LangDictionary> = {
       experience: 'Experience',
       credentials: 'Education',
       capabilities: 'Stack',
+      source: 'Code',
       contact: 'Contact',
       download_cv: 'Download CV',
       switch_language_title: 'Switch to Portuguese',
@@ -417,6 +484,46 @@ export const dictionary: Record<Lang, LangDictionary> = {
           tools: ['Jest', 'Supertest', 'Integration testing', 'ESLint', 'Prettier', 'Code review', 'Pair programming', 'Scrum'],
         },
       ],
+    },
+    source: {
+      title: "This site's code",
+      subtitle:
+        'The page, the API, the infrastructure and the panel live in one public repository. Everything this site claims can be read there.',
+      entries: [
+        {
+          label: 'Page',
+          line: 'Next.js 15 as a static export. No application server: the HTML comes out of the build and lives in S3.',
+        },
+        {
+          label: 'API',
+          line: 'Five Node.js Lambda functions. The contact form writes to DynamoDB before trying the e-mail, so a lead survives an SES failure.',
+        },
+        {
+          label: 'Infra',
+          line: 'CloudFormation written as Serverless Framework resources: CloudFront, API Gateway, tables, Cognito, S3 and DNS in one deploy.',
+        },
+        {
+          label: 'Panel',
+          line: 'Cognito login with mandatory TOTP. API Gateway blocks the admin routes before they reach the function.',
+        },
+        {
+          label: 'AI',
+          line: 'Since 2025, a good part of what I write has AI next to it: Claude, Copilot, Qwen, DeepSeek, MiniMax, all through the terminal. I review and rewrite what goes in.',
+        },
+      ],
+      repo_label: 'Repository',
+      repo_visibility: 'Public',
+      repo_stack: 'Next.js · TypeScript · Node.js · Serverless Framework · AWS',
+      tree_label: 'What is inside',
+      tree: [
+        { path: 'src/', note: 'interface, sections and copy' },
+        { path: 'backend/', note: 'contact, analytics and admin Lambdas' },
+        { path: 'sls/', note: 'CloudFront, DNS, S3, tables and Cognito' },
+        { path: 'scripts/', note: 'build, publish and admin' },
+      ],
+      cta: 'Open on GitHub',
+      readme_note:
+        'The README has the architecture and the reason for each service. It is where I would start.',
     },
     contact: {
       title: 'Contact',

@@ -7,6 +7,7 @@ import { DecisionsProvider } from '@/library/sections/decisions';
 import { ExperienceSection } from '@/library/sections/experience';
 import { Footer } from '@/library/sections/footer';
 import { HeroSection } from '@/library/sections/hero';
+import { SourceSection } from '@/library/sections/source';
 import { TechMarquee } from '@/library/sections/tech-marquee';
 import { WorkSection } from '@/library/sections/work';
 import { workData } from '@/library/sections/work.data';
@@ -46,6 +47,7 @@ export function HomePage({ lang }: { lang: Lang }) {
             <ExperienceSection lang={lang} />
             <CredentialsSection lang={lang} />
             <CapabilitiesSection lang={lang} />
+            <SourceSection lang={lang} />
             <ContactSection lang={lang} />
           </main>
           <Footer lang={lang} />

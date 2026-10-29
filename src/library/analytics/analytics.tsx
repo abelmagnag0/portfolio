@@ -14,6 +14,7 @@ const SECTIONS = [
   "experience",
   "credentials",
   "capabilities",
+  "source",
   "contact",
 ] as const;
 

@@ -24,6 +24,16 @@ export const SOCIAL = {
 } as const;
 
 /**
+ * O repositório deste site.
+ *
+ * É o mesmo código que gera a página, não uma amostra: a seção "O código deste
+ * site" aponta para cá para quem quiser conferir as afirmações em vez de
+ * acreditar nelas. Fica fora de `SOCIAL` porque não é um perfil — não entra no
+ * `sameAs` do JSON-LD.
+ */
+export const PORTFOLIO_REPO = "https://github.com/abelmagnag0/portfolio" as const;
+
+/**
  * Dados de identificação que alimentam o JSON-LD (`Person`).
  *
  * Ficam aqui, e não soltos nos componentes, para que a página, o cartão de

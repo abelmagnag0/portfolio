@@ -30,6 +30,11 @@ export function NavigationJsonLd({ lang = "pt-BR" }: { lang?: Lang }) {
       alternateName: en ? "Stack" : "Stack",
       hash: "#capabilities",
     },
+    {
+      name: en ? "Code" : "Código",
+      alternateName: en ? "Código" : "Code",
+      hash: "#source",
+    },
     { name: en ? "Contact" : "Contato", alternateName: en ? "Contato" : "Contact", hash: "#contact" },
   ];
 

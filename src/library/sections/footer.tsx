@@ -21,6 +21,7 @@ export function Footer({ lang }: { lang: Lang }) {
     { href: '#experience', label: dict.nav.experience },
     { href: '#credentials', label: dict.nav.credentials },
     { href: '#capabilities', label: dict.nav.capabilities },
+    { href: '#source', label: dict.nav.source },
     { href: '#contact', label: dict.nav.contact },
   ];
 
