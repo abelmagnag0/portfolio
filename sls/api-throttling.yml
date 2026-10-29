@@ -1,0 +1,46 @@
+# Limite de requisições do HTTP API (API Gateway v2).
+#
+# O Serverless Framework não expõe throttling de HTTP API no `provider.httpApi`,
+# então o estágio gerado (`HttpApiStage`) é ajustado por `extensions`. Os valores
+# são aplicados pelo próprio API Gateway antes da Lambda, então uma rajada não
+# chega a consumir invocação nem a gravar no DynamoDB.
+#
+# Por rota, e não só no padrão do estágio: o `/api/track` recebe vários eventos
+# por visita legítima (pageview + seções) e precisa de folga; o `/api/leads` é o
+# endpoint caro (grava no DynamoDB e manda e-mail pelo SES) e é o alvo natural
+# de abuso. O padrão do estágio fica como teto global.
+extensions:
+  HttpApiStage:
+    Properties:
+      DefaultRouteSettings:
+        # Mantém o valor que o Serverless já gerava; só acrescenta o limite.
+        DetailedMetricsEnabled: false
+        # Teto global: acima disso o API Gateway responde 429.
+        ThrottlingRateLimit: 50
+        ThrottlingBurstLimit: 100
+      RouteSettings:
+        # Formulário de contato: 5 req/s sustentado, rajada de 10. Uma pessoa
+        # envia um lead por vez; isso ainda acomoda vários visitantes atrás do
+        # mesmo NAT sem deixar um script encher a caixa de e-mail.
+        'POST /api/leads':
+          ThrottlingRateLimit: 5
+          ThrottlingBurstLimit: 10
+        # Analytics: o front manda vários eventos por página, então a folga é
+        # maior. Perder um evento é aceitável; travar a navegação não é.
+        'POST /api/track':
+          ThrottlingRateLimit: 20
+          ThrottlingBurstLimit: 50
+        # Config do Cognito: só o painel chama, uma vez por carregamento.
+        'GET /api/config':
+          ThrottlingRateLimit: 5
+          ThrottlingBurstLimit: 10
+        # Admin: já exige JWT, mas o limite segura um laço com token válido.
+        'GET /api/admin/stats':
+          ThrottlingRateLimit: 10
+          ThrottlingBurstLimit: 20
+        'GET /api/admin/leads':
+          ThrottlingRateLimit: 10
+          ThrottlingBurstLimit: 20
+        'PATCH /api/admin/leads':
+          ThrottlingRateLimit: 10
+          ThrottlingBurstLimit: 20

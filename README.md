@@ -246,14 +246,19 @@ first-time setup below covers that.
   `aws lambda get-function-configuration`.
 - The S3 bucket blocks all public access and is readable only by this
   distribution, enforced by `SourceArn`.
-- CloudFront redirects viewers to HTTPS and serves TLS 1.2_2021 minimum.
+- CloudFront redirects viewers to HTTPS and serves TLS 1.2_2021 minimum. HSTS
+  (one year, apex and `www`, no subdomains), `X-Content-Type-Options: nosniff`,
+  `X-Frame-Options: DENY` and a strict-origin referrer policy go on every
+  response, site and API.
 - Admin: password (12+ chars) **and** mandatory TOTP. The pool allows no
   self-signup. The gateway's JWT authorizer runs before any admin Lambda.
   Sessions last 30 days per browser, with refresh-token rotation and a 60 s
   reuse grace; signing out revokes the refresh token server-side.
 - Analytics stores no IP address; events self-delete after 400 days.
 - The contact endpoint has a honeypot and normalises input against header
-  injection.
+  injection. Public routes are throttled at the gateway before the Lambda runs:
+  5 req/s (burst 10) for the contact form, 20 req/s for analytics, and a 50 req/s
+  ceiling for the API as a whole.
 
 ## SEO and performance
 

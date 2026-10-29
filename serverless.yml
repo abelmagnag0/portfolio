@@ -152,3 +152,4 @@ resources:
   - ${file(./sls/dynamodb.yml)}
   - ${file(./sls/cloudfront.yml)}
   - ${file(./sls/route53.yml)}
+  - ${file(./sls/api-throttling.yml)}

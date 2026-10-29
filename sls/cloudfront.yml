@@ -69,6 +69,43 @@ Resources:
         QueryStringsConfig:
           QueryStringBehavior: all
 
+  # Headers de segurança em toda resposta do CloudFront (site e API).
+  #
+  # HSTS: o `ViewerProtocolPolicy` já redireciona HTTP para HTTPS, mas isso só
+  # vale depois que o navegador chega no CloudFront. O HSTS faz o navegador
+  # lembrar, por um ano, que este domínio é só HTTPS — e recusar a primeira
+  # requisição em HTTP, que é justamente a que um ataque de downgrade usa.
+  #
+  # `includeSubDomains` fica desligado de propósito: `mail.abel.dev.br` (MX do
+  # SES) e `radar.abel.dev.br` não respondem em HTTPS hoje. Ligar agora
+  # obrigaria esses hosts a HTTPS no navegador de quem já visitou o site. Depois
+  # de cada subdomínio servir HTTPS, é uma linha. `preload` também fica de fora:
+  # entrar na lista é praticamente irreversível.
+  #
+  # `nosniff` impede o navegador de "adivinhar" um tipo de conteúdo diferente
+  # do declarado; `X-Frame-Options` barra o site (e o painel) dentro de iframe,
+  # que é o que um clickjacking precisa.
+  PortfolioSecurityHeaders:
+    Type: AWS::CloudFront::ResponseHeadersPolicy
+    Properties:
+      ResponseHeadersPolicyConfig:
+        Name: portfolio-security-headers
+        Comment: HSTS, nosniff and frame protection
+        SecurityHeadersConfig:
+          StrictTransportSecurity:
+            AccessControlMaxAgeSec: 31536000
+            IncludeSubdomains: false
+            Override: true
+            Preload: false
+          ContentTypeOptions:
+            Override: true
+          FrameOptions:
+            FrameOption: DENY
+            Override: true
+          ReferrerPolicy:
+            ReferrerPolicy: strict-origin-when-cross-origin
+            Override: true
+
   PortfolioDistribution:
     Type: AWS::CloudFront::Distribution
     DependsOn:
@@ -103,6 +140,7 @@ Resources:
             - HEAD
           Compress: true
           CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # CachingOptimized
+          ResponseHeadersPolicyId: !Ref PortfolioSecurityHeaders
           FunctionAssociations:
             - EventType: viewer-request
               FunctionARN: !GetAtt PortfolioUrlRewriteFunction.FunctionARN
@@ -126,6 +164,7 @@ Resources:
             Compress: true
             CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # CachingDisabled
             OriginRequestPolicyId: !Ref PortfolioApiOriginRequestPolicy
+            ResponseHeadersPolicyId: !Ref PortfolioSecurityHeaders
         CustomErrorResponses:
           - ErrorCode: 404
             ResponseCode: 404

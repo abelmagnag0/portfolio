@@ -69,11 +69,15 @@ export const handler = async (event) => {
   const geo = geoFromEvent(event);
   const now = new Date();
   const iso = now.toISOString();
+  const id = randomUUID();
 
   const item = {
     pk: "lead",
-    sk: iso,
-    id: randomUUID(),
+    // UUID no fim: o ISO sozinho colide quando dois leads chegam no mesmo
+    // milissegundo, e o PutItem sobrescreveria o primeiro. O prefixo ISO
+    // continua ordenando por data na query do painel.
+    sk: `${iso}#${id}`,
+    id,
     status: "new",
     createdAt: iso,
     name: lead.name,
