@@ -95,6 +95,17 @@ export function localeBase(lang: "pt-BR" | "en"): string {
   return path === "/" ? SITE_URL : `${SITE_URL}${path}`;
 }
 
+/**
+ * Data da última mudança de **conteúdo**, não do build.
+ *
+ * O sitemap usa este valor como `lastmod`. Antes ele usava `new Date()`, o que
+ * fazia cada publicação declarar "mudei agora" mesmo quando a alteração era só
+ * de CSS ou de infraestrutura — e `lastmod` que mente é o tipo de sinal que o
+ * Google aprende a ignorar. Atualize esta data quando o texto, os projetos ou
+ * os dados do site mudarem de fato.
+ */
+export const CONTENT_LAST_MODIFIED = "2026-10-29" as const;
+
 export const OG_ALT = `${SITE_NAME} · Engenheiro de Software` as const;
 export const OG_ALT_EN = `${SITE_NAME} · Software Engineer` as const;
 
